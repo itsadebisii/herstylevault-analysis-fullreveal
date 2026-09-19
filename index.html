@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerStyleVault — Analysis Tool · The Full Reveal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--blush:#f2d9d0;--mauve:#c9a09a;--rose:#b07070;--deep-rose:#8b5055;--cream:#fdf6f0;--warm-white:#fff9f6;--text-dark:#1a1010;--text-mid:#4a2e2e;--text-light:#6b4a4a;--gold:#c9a96e;--pkg:#1a1010;--pkg-accent:#c9a96e;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;}
+.header{background:var(--pkg);padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--pkg-accent);}
+.header-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--blush);letter-spacing:0.08em;}
+.header-badge{font-size:0.55rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--pkg-accent);border:1px solid rgba(201,169,110,0.4);padding:0.3rem 0.8rem;}
+.pkg-banner{background:linear-gradient(135deg,#1a1010 0%,#2a1a1a 100%);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,169,110,0.2);}
+.pkg-banner-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--blush);font-weight:300;}
+.pkg-banner-detail{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--pkg-accent);}
+.tabs{display:flex;background:var(--warm-white);border-bottom:1px solid rgba(201,160,154,0.2);}
+.tab{flex:1;padding:1rem;text-align:center;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.3s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Jost',sans-serif;}
+.tab.active{color:var(--pkg);border-bottom-color:var(--pkg-accent);background:var(--cream);}
+.main{padding:2rem;max-width:800px;margin:0 auto;}
+.sec{display:none;}.sec.active{display:block;}
+.client-bar{background:var(--blush);padding:1rem 1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;}
+.client-bar label{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-mid);white-space:nowrap;}
+.client-bar input{flex:1;border:none;background:white;padding:0.5rem 0.8rem;font-size:0.82rem;font-family:'Jost',sans-serif;color:var(--text-dark);outline:none;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--text-dark);margin-bottom:0.3rem;}
+.sec-title em{font-style:italic;color:var(--gold);}
+.sec-sub{font-size:0.75rem;color:var(--text-light);margin-bottom:1.5rem;font-weight:300;line-height:1.7;}
+.qcard{background:white;border:1px solid rgba(201,160,154,0.2);padding:1.2rem 1.5rem;margin-bottom:1rem;}
+.qlabel{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mauve);margin-bottom:0.4rem;}
+.qtext{font-size:0.88rem;color:var(--text-dark);font-weight:400;margin-bottom:0.8rem;line-height:1.5;}
+.qopts{display:flex;flex-wrap:wrap;gap:0.5rem;}
+.qopt{padding:0.4rem 1rem;border:1px solid rgba(201,160,154,0.3);font-size:0.72rem;color:var(--text-mid);cursor:pointer;transition:all 0.2s;background:var(--cream);font-family:'Jost',sans-serif;}
+.qopt:hover{border-color:var(--gold);color:var(--text-dark);}
+.qopt.sel{background:var(--pkg);color:white;border-color:var(--pkg);}
+textarea{width:100%;border:1px solid rgba(201,160,154,0.3);padding:0.8rem;font-size:0.78rem;font-family:'Jost',sans-serif;color:var(--text-dark);outline:none;background:var(--cream);resize:vertical;min-height:80px;line-height:1.6;}
+.genbtn{width:100%;padding:1rem;background:var(--pkg);color:white;border:none;font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;margin-top:1.5rem;}
+.resetbtn{background:none;border:none;font-size:0.65rem;color:var(--text-light);cursor:pointer;letter-spacing:0.1em;text-decoration:underline;font-family:'Jost',sans-serif;margin-top:1rem;display:block;}
+.results{display:none;margin-top:2rem;}.results.vis{display:block;}
+.rhead{background:var(--pkg);padding:1.5rem 2rem;margin-bottom:1rem;border-bottom:2px solid var(--pkg-accent);}
+.rhead-label{font-size:0.55rem;letter-spacing:0.3em;text-transform:uppercase;color:rgba(201,169,110,0.5);margin-bottom:0.3rem;}
+.rhead-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--blush);font-weight:300;}
+.rhead-title em{font-style:italic;color:var(--gold);}
+.rhead-name{font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:0.3rem;}
+.archetype{background:var(--pkg);padding:1.2rem 2rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;border-left:4px solid var(--gold);}
+.arch-label{font-size:0.5rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,169,110,0.6);margin-bottom:0.3rem;}
+.arch-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:white;font-style:italic;}
+.pkg-note{background:rgba(26,16,16,0.06);border-left:3px solid var(--gold);padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.72rem;color:var(--text-mid);line-height:1.7;}
+.premium-banner{background:var(--pkg);padding:0.6rem 1rem;margin:1rem 0 0.3rem;}
+.premium-banner-text{font-size:0.48rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);}
+.rcard{background:white;border:1px solid rgba(201,160,154,0.2);padding:1.5rem;margin-bottom:1rem;}
+.rcard.premium{border-left:3px solid var(--gold);}
+.rcard-label{font-size:0.52rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--mauve);margin-bottom:0.5rem;}
+.rcard-label.gold{color:var(--gold);}
+.rcard-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--text-dark);margin-bottom:0.8rem;}
+.swatches{display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:0.8rem;}
+.sw{display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.sw-circle{width:40px;height:40px;border-radius:50%;border:1px solid rgba(0,0,0,0.08);}
+.sw-name{font-size:0.45rem;color:var(--text-light);text-align:center;max-width:48px;line-height:1.3;}
+.rlist{list-style:none;}
+.ritem{display:flex;align-items:flex-start;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid rgba(201,160,154,0.1);font-size:0.78rem;color:var(--text-mid);font-weight:300;line-height:1.5;}
+.ritem:last-child{border-bottom:none;}
+.ritem::before{content:'✦';color:var(--mauve);font-size:0.4rem;flex-shrink:0;margin-top:0.4rem;}
+.ritem.gold::before{color:var(--gold);}
+.ritem.avoid::before{content:'✕';color:var(--rose);font-size:0.5rem;margin-top:0.35rem;}
+.avoid-box{background:rgba(139,80,85,0.06);border-left:3px solid var(--rose);padding:1rem 1.2rem;margin-top:0.8rem;}
+.avoid-label{font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--deep-rose);margin-bottom:0.4rem;}
+.avoid-text{font-size:0.75rem;color:var(--text-mid);line-height:1.8;font-weight:300;}
+.tip-box{background:var(--blush);border-left:3px solid var(--deep-rose);padding:1rem 1.2rem;margin-top:0.8rem;}
+.tip-text{font-size:0.75rem;color:var(--text-mid);line-height:1.8;font-weight:300;font-style:italic;}
+.gold-box{background:rgba(201,169,110,0.08);border-left:3px solid var(--gold);padding:1rem 1.2rem;margin-top:0.8rem;}
+.gold-label{font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;}
+.gold-text{font-size:0.75rem;color:var(--text-mid);line-height:1.8;font-weight:300;}
+.dark-box{background:var(--pkg);border-left:3px solid var(--gold);padding:1rem 1.2rem;margin-top:0.8rem;}
+.dark-text{font-size:0.75rem;color:rgba(255,255,255,0.6);line-height:1.8;font-weight:300;}
+.ref-box{background:rgba(201,169,110,0.06);border-left:3px solid var(--gold);padding:0.8rem 1rem;margin-top:0.8rem;}
+.ref-label{font-size:0.48rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;}
+.ref-links{display:flex;flex-wrap:wrap;gap:0.5rem;}
+.ref-link{font-size:0.68rem;color:var(--text-dark);text-decoration:none;border:1px solid rgba(201,169,110,0.4);padding:0.2rem 0.6rem;transition:all 0.2s;}
+.ref-link:hover{background:var(--gold);}
+.copy-btns{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:1.5rem;}
+.copy-btn{padding:0.8rem;background:transparent;font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;transition:all 0.3s;}
+.copy-hub{border:1px solid var(--mauve);color:var(--text-mid);}
+.copy-hub:hover{background:var(--mauve);color:white;}
+.copy-guide{border:1px solid var(--gold);color:var(--text-dark);}
+.copy-guide:hover{background:var(--gold);}
+
+/* Outfit Builds tab */
+.export-box{background:var(--blush);padding:1.4rem 1.5rem;margin-bottom:1.8rem;text-align:center;}
+.export-btn{padding:1rem 2.2rem;background:var(--pkg);color:#fff;border:none;font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;transition:opacity 0.2s;}
+.export-btn:disabled{background:#c9bcae;cursor:not-allowed;}
+.export-note{font-size:0.66rem;color:var(--text-mid);margin-top:0.7rem;letter-spacing:0.02em;line-height:1.6;}
+.outfit-slot{background:white;border:1px solid rgba(201,160,154,0.2);padding:1.1rem 1.3rem;margin-bottom:1rem;}
+.outfit-caption{width:100%;border:1px solid rgba(201,160,154,0.3);padding:0.5rem 0.7rem;font-size:0.78rem;font-family:'Jost',sans-serif;color:var(--text-dark);margin-bottom:0.7rem;outline:none;background:var(--cream);}
+.outfit-upload-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.outfit-file-btn{padding:0.5rem 1rem;border:1px solid var(--gold);color:var(--text-dark);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-family:'Jost',sans-serif;}
+.outfit-file-btn:hover{background:var(--gold);}
+.outfit-thumb-wrap{flex:1;min-height:1px;}
+.outfit-thumb{max-height:96px;max-width:150px;display:block;border:1px solid rgba(0,0,0,0.1);object-fit:cover;}
+
+/* Hidden PDF render pages */
+#pdf-root{position:fixed;top:0;left:-99999px;width:816px;}
+.pdf-page{width:816px;height:1056px;background:var(--warm-white);padding:60px 64px;box-sizing:border-box;font-family:'Jost',sans-serif;color:var(--text-dark);position:relative;overflow:hidden;}
+.pdf-cover{background:linear-gradient(160deg,var(--blush) 0%,var(--cream) 55%,var(--warm-white) 100%);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.pdf-closing{background:linear-gradient(160deg,var(--cream) 0%,var(--blush) 100%);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.pdf-logo{font-family:'Cormorant Garamond',serif;font-size:2.6rem;color:var(--text-dark);letter-spacing:0.06em;margin-bottom:0.4rem;}
+.pdf-pkg-pill{display:inline-block;padding:0.55rem 1.5rem;background:var(--pkg);color:var(--gold);font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;margin:1.3rem 0;}
+.pdf-client-name{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-style:italic;color:var(--deep-rose);margin-top:1.4rem;}
+.pdf-date{font-size:0.8rem;color:var(--text-light);margin-top:0.7rem;letter-spacing:0.04em;}
+.pdf-foot{position:absolute;bottom:40px;left:64px;right:64px;display:flex;justify-content:space-between;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-light);border-top:1px solid rgba(0,0,0,0.08);padding-top:10px;}
+.pdf-h1{font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--text-dark);margin-bottom:0.5rem;font-weight:400;}
+.pdf-h1 em{color:var(--gold);font-style:italic;}
+.pdf-section-label{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mauve);margin:1.3rem 0 0.5rem;}
+.pdf-box{background:#fff;border:1px solid rgba(201,160,154,0.3);padding:1rem 1.3rem;margin-bottom:0.9rem;font-size:0.82rem;line-height:1.7;color:var(--text-mid);}
+.pdf-list{list-style:none;padding:0;margin:0;}
+.pdf-list li{padding:0.35rem 0;font-size:0.82rem;line-height:1.55;color:var(--text-mid);border-bottom:1px solid rgba(201,160,154,0.12);}
+.pdf-list li:last-child{border-bottom:none;}
+.pdf-list li::before{content:'✦ ';color:var(--gold);}
+.pdf-swatches{display:flex;flex-wrap:wrap;gap:1.1rem;margin-bottom:1rem;}
+.pdf-sw{display:flex;flex-direction:column;align-items:center;width:88px;}
+.pdf-sw-box{width:64px;height:64px;border-radius:8px;border:1px solid rgba(0,0,0,0.12);margin-bottom:0.4rem;}
+.pdf-sw-label{font-size:0.66rem;text-align:center;color:var(--text-mid);line-height:1.3;}
+.pdf-sw-hex{font-size:0.56rem;color:var(--text-light);letter-spacing:0.04em;}
+.pdf-outfit-photo{max-width:100%;max-height:100%;object-fit:contain;}
+.pdf-outfit-caption{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.3rem;text-align:center;margin-top:1rem;color:var(--text-dark);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">HerStyleVault</div>
+  <div class="header-badge">💎 The Full Reveal — Full Analysis</div>
+</div>
+<div class="pkg-banner">
+  <div class="pkg-banner-title">The Full Reveal · $200 · 5 Sessions · 10 Outfit Builds · In Person Shopping Trip</div>
+  <div class="pkg-banner-detail">Full Color & Body Analysis</div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('color')">🎨 Color Analysis</button>
+  <button class="tab" onclick="switchTab('body')">👗 Body Analysis</button>
+  <button class="tab" onclick="switchTab('outfits')">📸 Outfit Builds</button>
+</div>
+<div class="main">
+
+<!-- COLOR -->
+<div id="sec-color" class="sec active">
+  <div class="client-bar"><label>Client Name</label><input type="text" id="cn-color" placeholder="Type client name..."/></div>
+  <h2 class="sec-title">Color <em>Analysis</em></h2>
+  <p class="sec-sub">Full analysis for The Full Reveal — complete color intelligence including seasonal guidance, occasion colors, makeup direction, hair recommendations and foundation guide. The most comprehensive color profile available.</p>
+  <div class="qcard"><p class="qlabel">Question 01</p><p class="qtext">"Does gold or silver jewelry look better on you?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'jewelry','gold')">Gold</button><button class="qopt" onclick="sel(this,'jewelry','silver')">Silver</button><button class="qopt" onclick="sel(this,'jewelry','both')">Both equally</button><button class="qopt" onclick="sel(this,'jewelry','unsure')">Not sure</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 02</p><p class="qtext">"In the sun do you tan easily or burn?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'sun','tan')">Tan easily</button><button class="qopt" onclick="sel(this,'sun','burn')">Burn easily</button><button class="qopt" onclick="sel(this,'sun','both')">Tan then burn</button><button class="qopt" onclick="sel(this,'sun','neither')">Rarely in sun</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 03</p><p class="qtext">"Are your veins more blue/purple or green?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'veins','blue')">Blue / Purple</button><button class="qopt" onclick="sel(this,'veins','green')">Green</button><button class="qopt" onclick="sel(this,'veins','both')">Mix of both</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 04</p><p class="qtext">"Colors you always get compliments in?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'comp','warm')">Warm — oranges, browns, greens</button><button class="qopt" onclick="sel(this,'comp','cool')">Cool — blues, pinks, purples</button><button class="qopt" onclick="sel(this,'comp','neutral')">Neutral — beige, white, gray</button><button class="qopt" onclick="sel(this,'comp','unsure')">Not sure</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 05</p><p class="qtext">"Colors that wash you out?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'wash','warm')">Warm tones wash me out</button><button class="qopt" onclick="sel(this,'wash','cool')">Cool tones wash me out</button><button class="qopt" onclick="sel(this,'wash','pale')">Very pale / icy colors</button><button class="qopt" onclick="sel(this,'wash','none')">Nothing washes me out</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 06 — Your Observation</p><p class="qtext">Skin tone depth?</p><div class="qopts"><button class="qopt" onclick="sel(this,'depth','fair')">Fair / Light</button><button class="qopt" onclick="sel(this,'depth','medium')">Medium / Olive</button><button class="qopt" onclick="sel(this,'depth','tan')">Tan / Caramel</button><button class="qopt" onclick="sel(this,'depth','deep')">Deep / Rich</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 07 — Your Observation</p><p class="qtext">Natural hair color?</p><div class="qopts"><button class="qopt" onclick="sel(this,'hair','warm_brown')">Warm Brown / Auburn</button><button class="qopt" onclick="sel(this,'hair','cool_brown')">Cool Brown / Ash Brown</button><button class="qopt" onclick="sel(this,'hair','black')">Black</button><button class="qopt" onclick="sel(this,'hair','blonde_warm')">Warm Blonde / Golden</button><button class="qopt" onclick="sel(this,'hair','blonde_cool')">Cool Blonde / Ash</button><button class="qopt" onclick="sel(this,'hair','gray')">Gray / Silver</button><button class="qopt" onclick="sel(this,'hair','red')">Red</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 08 — Your Observation</p><p class="qtext">"How much contrast is there between your hair, skin and eyes?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'contrast','high')">High contrast — very different from each other</button><button class="qopt" onclick="sel(this,'contrast','medium')">Medium — some contrast, not dramatic</button><button class="qopt" onclick="sel(this,'contrast','low')">Low contrast — blend softly together</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 09</p><p class="qtext">"Do bright, saturated colors or soft, muted colors look better on you?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'chroma','bright')">Bright, saturated colors</button><button class="qopt" onclick="sel(this,'chroma','muted')">Soft, muted colors</button><button class="qopt" onclick="sel(this,'chroma','both')">Both look good</button></div></div>
+  <div class="qcard"><p class="qlabel">Things to Remember</p><textarea id="cnotes" placeholder="Eye color, skin notes, current hair color, any other detailed observations..."></textarea></div>
+  <button class="genbtn" onclick="genColor()">Generate Full Color Analysis ✦</button>
+  <button class="resetbtn" onclick="resetColor()">Reset all answers</button>
+
+  <div class="results" id="color-res">
+    <div class="rhead"><p class="rhead-label">✦ Full Color Analysis — The Full Reveal</p><h2 class="rhead-title">Color <em>Blueprint</em></h2><p class="rhead-name" id="cn-color-disp"></p></div>
+    <div class="archetype"><div><div class="arch-label">✦ Style Archetype</div><div class="arch-name" id="arch-color">—</div></div><div style="font-size:0.6rem;color:rgba(201,169,110,0.6);text-align:right;">💎 The Full Reveal · Full</div></div>
+    <div class="pkg-note">✦ <strong>The Full Reveal — Full</strong> includes: Everything in Standard PLUS Seasonal Color Guide · Colors by Occasion · Makeup Direction · Hair Recommendations · Foundation Undertone Guide. The most comprehensive color analysis available.</div>
+    <div class="rcard"><p class="rcard-label">✦ Why This Is You</p><h3 class="rcard-title">Built From Your Actual Answers</h3><p style="font-size:0.8rem;color:var(--text-mid);line-height:1.9;font-weight:300;" id="color-narrative"></p></div>
+
+    <div class="rcard"><p class="rcard-label">Color Type Identified</p><h3 class="rcard-title" id="undertone-r">—</h3><p style="font-size:0.75rem;color:var(--text-mid);line-height:1.8;font-weight:300;" id="undertone-d"></p><div class="ref-box"><div class="ref-label">✦ Reference Links</div><div class="ref-links" id="undertone-refs"></div></div></div>
+    <div class="rcard"><p class="rcard-label">Full Neutral Palette</p><h3 class="rcard-title">Their Wardrobe Base</h3><div class="swatches" id="neutral-sw"></div></div>
+    <div class="rcard"><p class="rcard-label">All 6 Signature Colors</p><h3 class="rcard-title">What Makes Them Glow</h3><div class="swatches" id="sig-sw"></div></div>
+    <div class="rcard"><p class="rcard-label">Accent Colors</p><h3 class="rcard-title">Their Finishing Touch</h3><div class="swatches" id="accent-sw"></div></div>
+    <div class="rcard"><p class="rcard-label">Metal Tone</p><h3 class="rcard-title" id="metal-r">—</h3></div>
+    <div class="rcard"><p class="rcard-label">Accessory Color Guide</p><h3 class="rcard-title">Bags, Shoes & Jewelry</h3><div class="gold-box"><p class="gold-label">Best Accessory Colors ✦</p><p class="gold-text" id="accessory-r"></p></div></div>
+    <div class="rcard"><p class="rcard-label">Pattern & Print Guidance</p><h3 class="rcard-title">How to Wear Prints</h3><ul class="rlist" id="pattern-r"></ul></div>
+
+    <div class="premium-banner"><p class="premium-banner-text">✦ Full Reveal Exclusive — Extended Color Intelligence</p></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Seasonal Color Guide — Full Reveal Only</p><h3 class="rcard-title">How Their Palette Works Across Seasons</h3><ul class="rlist" id="seasonal-r"></ul></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Colors by Occasion — Full Reveal Only</p><h3 class="rcard-title">What to Wear & When</h3><ul class="rlist" id="occasion-color-r"></ul></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Makeup Color Direction — Full Reveal Only</p><h3 class="rcard-title">Lip, Eye & Blush Colors That Complement</h3><ul class="rlist" id="makeup-r"></ul><div class="ref-box"><div class="ref-label">✦ Makeup References</div><div class="ref-links" id="makeup-refs"></div></div></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Hair Color Recommendations — Full Reveal Only</p><h3 class="rcard-title">Colors That Enhance Natural Beauty</h3><ul class="rlist" id="hair-r"></ul></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Foundation Undertone Guide — Full Reveal Only</p><h3 class="rcard-title">What to Look For When Shopping Foundation</h3><div class="gold-box"><p class="gold-label">Foundation Shopping Guide ✦</p><p class="gold-text" id="foundation-r"></p></div></div>
+
+    <div class="rcard"><p class="rcard-label">Colors to Avoid</p><h3 class="rcard-title">Skip List</h3><div class="avoid-box"><p class="avoid-label">Minimize These</p><p class="avoid-text" id="avoid-r"></p></div></div>
+    <div class="copy-btns"><button class="copy-btn copy-hub" onclick="copyColorHub()">Copy for Style Hub ✦</button><button class="copy-btn copy-guide" onclick="copyColorGuide()">Copy for Style Guide ✦</button></div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div id="sec-body" class="sec">
+  <div class="client-bar"><label>Client Name</label><input type="text" id="cn-body" placeholder="Type client name..."/></div>
+  <h2 class="sec-title">Body & Silhouette <em>Analysis</em></h2>
+  <p class="sec-sub">Full analysis for The Full Reveal — complete silhouette guide plus occasion-specific styling, shopping trip guide and independent shopping keywords. The most comprehensive body profile available.</p>
+  <div class="qcard"><p class="qlabel">Question 01</p><p class="qtext">"Tops or bottoms fit better?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'fit','tops')">Tops fit better</button><button class="qopt" onclick="sel(this,'fit','bottoms')">Bottoms fit better</button><button class="qopt" onclick="sel(this,'fit','both')">Both fit well</button><button class="qopt" onclick="sel(this,'fit','neither')">Neither fits great</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 02</p><p class="qtext">"Where do you notice weight gain first?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'weight','belly')">Belly / midsection</button><button class="qopt" onclick="sel(this,'weight','hips')">Hips / thighs</button><button class="qopt" onclick="sel(this,'weight','upper')">Upper body / arms</button><button class="qopt" onclick="sel(this,'weight','evenly')">Evenly all over</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 03</p><p class="qtext">"What styles do you always gravitate toward?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'style','flowy')">Flowy and loose</button><button class="qopt" onclick="sel(this,'style','fitted')">Fitted and structured</button><button class="qopt" onclick="sel(this,'style','waist')">Defines the waist</button><button class="qopt" onclick="sel(this,'style','oversized')">Oversized and relaxed</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 04</p><p class="qtext">"Dresses or separates?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'dress','dresses')">Dresses work better</button><button class="qopt" onclick="sel(this,'dress','separates')">Separates work better</button><button class="qopt" onclick="sel(this,'dress','both')">Both equally</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 05</p><p class="qtext">"Where do you feel most confident?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'conf','shoulders')">Shoulders / collarbone</button><button class="qopt" onclick="sel(this,'conf','waist')">Waist</button><button class="qopt" onclick="sel(this,'conf','legs')">Legs</button><button class="qopt" onclick="sel(this,'conf','bust')">Bust</button><button class="qopt" onclick="sel(this,'conf','overall')">Overall confident</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 06 — Your Observation</p><p class="qtext">Body shape assessment?</p><div class="qopts"><button class="qopt" onclick="sel(this,'shape','apple')">🍎 Apple</button><button class="qopt" onclick="sel(this,'shape','pear')">🍐 Pear</button><button class="qopt" onclick="sel(this,'shape','hourglass')">⌛ Hourglass</button><button class="qopt" onclick="sel(this,'shape','rectangle')">📏 Rectangle</button><button class="qopt" onclick="sel(this,'shape','inverted')">🔺 Inverted Triangle</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 07</p><p class="qtext">"What's your height range?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'height','petite')">Petite — under 5'4"</button><button class="qopt" onclick="sel(this,'height','average')">Average — 5'4" to 5'7"</button><button class="qopt" onclick="sel(this,'height','tall')">Tall — 5'8" and up</button></div></div>
+  <div class="qcard"><p class="qlabel">Question 08</p><p class="qtext">"Do you have a longer torso or longer legs?"</p><div class="qopts"><button class="qopt" onclick="sel(this,'proportion','longTorso')">Longer torso</button><button class="qopt" onclick="sel(this,'proportion','longLegs')">Longer legs</button><button class="qopt" onclick="sel(this,'proportion','balanced')">Pretty balanced</button></div></div>
+  <div class="qcard"><p class="qlabel">Things to Remember</p><textarea id="bnotes" placeholder="Height, proportions, posture, lifestyle notes for shopping trip, postpartum notes..."></textarea></div>
+  <button class="genbtn" onclick="genBody()">Generate Full Body Analysis ✦</button>
+  <button class="resetbtn" onclick="resetBody()">Reset all answers</button>
+
+  <div class="results" id="body-res">
+    <div class="rhead"><p class="rhead-label">✦ Full Body Analysis — The Full Reveal</p><h2 class="rhead-title">Silhouette <em>Blueprint</em></h2><p class="rhead-name" id="cn-body-disp"></p></div>
+    <div class="archetype"><div><div class="arch-label">✦ Style Archetype</div><div class="arch-name" id="arch-body">—</div></div><div style="font-size:0.6rem;color:rgba(201,169,110,0.6);text-align:right;">💎 The Full Reveal · Full</div></div>
+    <div class="pkg-note">✦ <strong>The Full Reveal — Full</strong> includes: Everything in Standard PLUS Occasion-Specific Styling · Shopping Trip Guide · Independent Shopping Keywords. The most comprehensive body analysis available.</div>
+    <div class="rcard"><p class="rcard-label">✦ Why This Is You</p><h3 class="rcard-title">Built From Your Actual Answers</h3><p style="font-size:0.8rem;color:var(--text-mid);line-height:1.9;font-weight:300;" id="body-narrative"></p></div>
+
+    <div class="rcard"><p class="rcard-label">Body Shape Identified</p><h3 class="rcard-title" id="shape-r">—</h3><p style="font-size:0.75rem;color:var(--text-mid);line-height:1.8;font-weight:300;" id="shape-d"></p><div class="ref-box"><div class="ref-label">✦ Body Shape References</div><div class="ref-links" id="shape-refs"></div></div></div>
+    <div class="rcard"><p class="rcard-label">Styling Goal</p><h3 class="rcard-title">What We Are Working Toward</h3><div class="tip-box"><p class="tip-text" id="goal-r"></p></div></div>
+    <div class="rcard"><p class="rcard-label">✅ Complete Silhouette Guide</p><h3 class="rcard-title">All Silhouettes That Work</h3><ul class="rlist" id="sil-r"></ul></div>
+    <div class="rcard"><p class="rcard-label">✅ Full Tops & Necklines</p><h3 class="rcard-title">Upper Body Guide</h3><ul class="rlist" id="tops-r"></ul></div>
+    <div class="rcard"><p class="rcard-label">✅ Full Bottoms & Dresses</p><h3 class="rcard-title">Lower Body Guide</h3><ul class="rlist" id="bots-r"></ul></div>
+    <div class="rcard"><p class="rcard-label">✅ Accessory Styling Guide</p><h3 class="rcard-title">How to Accessorize This Shape</h3><ul class="rlist" id="acc-r"></ul></div>
+    <div class="rcard"><p class="rcard-label">✦ Complete Fabric Guide</p><h3 class="rcard-title">Best & Worst Fabrics</h3><div class="gold-box"><p class="gold-label">Best Fabrics ✦</p><p class="gold-text" id="fab-good"></p></div><div class="avoid-box" style="margin-top:0.8rem;"><p class="avoid-label">Fabrics to Avoid</p><p class="avoid-text" id="fab-avoid"></p></div></div>
+    <div class="rcard"><p class="rcard-label">Complete Avoid List</p><h3 class="rcard-title">Minimize These</h3><div class="avoid-box"><p class="avoid-label">Less Flattering For This Shape</p><ul class="rlist" id="avoid-r-body" style="margin-top:0.5rem;"></ul></div><div class="tip-box" style="margin-top:0.8rem;"><p class="tip-text">"These are guidelines not rules — everything we build together is designed specifically for your body so you always feel incredible." ✦</p></div></div>
+
+    <div class="premium-banner"><p class="premium-banner-text">✦ Full Reveal Exclusive — Shopping Intelligence</p></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Occasion-Specific Styling — Full Reveal Only</p><h3 class="rcard-title">What to Wear & When</h3><ul class="rlist" id="occasion-r"></ul></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Shopping Trip Guide — Full Reveal Only</p><h3 class="rcard-title">How to Shop For This Shape</h3><div class="gold-box"><p class="gold-label">Shopping Trip Strategy ✦</p><p class="gold-text" id="shop-tip"></p></div></div>
+    <div class="rcard premium"><p class="rcard-label gold">✦ Independent Shopping Keywords — Full Reveal Only</p><h3 class="rcard-title">What to Search When Shopping Alone</h3><div class="gold-box"><p class="gold-label">Search These Terms Online ✦</p><p class="gold-text" id="shop-keywords"></p></div><div class="avoid-box" style="margin-top:0.8rem;"><p class="avoid-label">Avoid These Search Terms</p><p class="avoid-text" id="avoid-keywords"></p></div></div>
+
+    <div class="copy-btns"><button class="copy-btn copy-hub" onclick="copyBodyHub()">Copy for Style Hub ✦</button><button class="copy-btn copy-guide" onclick="copyBodyGuide()">Copy for Style Guide ✦</button></div>
+  </div>
+</div>
+
+<!-- OUTFIT BUILDS -->
+<div id="sec-outfits" class="sec">
+  <h2 class="sec-title">Outfit <em>Builds</em></h2>
+  <p class="sec-sub">Upload a photo of each finished outfit build as you style them together this session, with a short caption. These are included automatically in the exported Style Guide PDF — fill in as many or as few as you have right now.</p>
+  <div class="export-box">
+    <button class="export-btn" id="exportPdfBtn" onclick="exportStyleGuidePDF()" disabled>📄 Export Style Guide PDF</button>
+    <p class="export-note" id="exportPdfNote">Generate both Color and Body analysis first.</p>
+  </div>
+  <div id="outfit-slots"></div>
+</div>
+</div>
+
+<div id="pdf-root" aria-hidden="true"></div>
+
+<script>
+const CA={},BA={};
+const PKG_NAME='The Full Reveal';
+const PKG_TAG='Full';
+const OUTFIT_COUNT=10;
+const outfits=new Array(OUTFIT_COUNT).fill(null);
+let colorGenerated=false,bodyGenerated=false;
+const archetypesBySeasonFamily={
+  spring:{apple:'Soft and Unbothered',pear:"She's Just Built Different",hourglass:'The It Girl',rectangle:'The Vibe Curator',inverted:'Boss Energy'},
+  summer:{apple:'Confident and Clean',pear:'Quietly Iconic',hourglass:'Sleek and Stunning',rectangle:'The Minimalist',inverted:'Cool Girl Season'},
+  autumn:{apple:'Chic on Her Terms',pear:"Soft but Make it Chef's Kiss",hourglass:'Timeless and That Girl',rectangle:"She Don't Miss",inverted:'Strong and Stunning'},
+  winter:{apple:'Bold and Beautiful',pear:'Rich Girl Energy',hourglass:'Unapologetically Her',rectangle:'The Statement',inverted:'Powerful and Polished'}
+};
+const SEASON_FAMILY={lightSpring:'spring',trueSpring:'spring',brightSpring:'spring',lightSummer:'summer',trueSummer:'summer',softSummer:'summer',softAutumn:'autumn',trueAutumn:'autumn',deepAutumn:'autumn',brightWinter:'winter',trueWinter:'winter',deepWinter:'winter'};
+
+function computeColorAxes(a){
+  let warmScore=0,coolScore=0;
+  if(a.jewelry==='gold')warmScore+=2;if(a.jewelry==='silver')coolScore+=2;if(a.jewelry==='both'){warmScore++;coolScore++;}
+  if(a.sun==='tan')warmScore+=2;if(a.sun==='burn')coolScore+=2;if(a.sun==='both'){warmScore++;coolScore++;}
+  if(a.veins==='green')warmScore+=2;if(a.veins==='blue')coolScore+=2;if(a.veins==='both'){warmScore++;coolScore++;}
+  if(a.comp==='warm')warmScore+=2;if(a.comp==='cool')coolScore+=2;
+  if(a.wash==='cool')warmScore++;if(a.wash==='warm')coolScore++;
+  const net=warmScore-coolScore;
+  const undertone=net>=3?'warm':net<=-3?'cool':'neutral';
+  const depthScore={fair:0,medium:1,tan:2,deep:3}[a.depth]??1;
+  const value=depthScore===0?'light':depthScore===3?'deep':'medium';
+  let chromaScore=0;
+  if(a.chroma==='bright')chromaScore+=2;if(a.chroma==='muted')chromaScore-=2;
+  if(a.contrast==='high')chromaScore+=1;if(a.contrast==='low')chromaScore-=1;
+  const chroma=chromaScore>=1?'bright':chromaScore<=-1?'soft':'blended';
+  return{undertone,value,chroma};
+}
+const SEASON_TABLE={
+  warm:{bright:{light:'lightSpring',medium:'trueSpring',deep:'brightSpring'},soft:{light:'softAutumn',medium:'trueAutumn',deep:'deepAutumn'},blended:{light:'lightSpring',medium:'trueAutumn',deep:'deepAutumn'}},
+  cool:{bright:{light:'brightWinter',medium:'trueWinter',deep:'deepWinter'},soft:{light:'lightSummer',medium:'trueSummer',deep:'softSummer'},blended:{light:'lightSummer',medium:'trueSummer',deep:'deepWinter'}},
+  neutral:{bright:{light:'brightSpring',medium:'brightSpring',deep:'brightWinter'},soft:{light:'softSummer',medium:'softSummer',deep:'softAutumn'},blended:{light:'softSummer',medium:'softAutumn',deep:'softAutumn'}}
+};
+function getSeason(a){const axes=computeColorAxes(a);return{key:SEASON_TABLE[axes.undertone][axes.chroma][axes.value],axes};}
+function getUT(){return getSeason(CA).axes.undertone;}
+function getPremiumBucket(axes){return axes.value==='deep'?'deep':axes.undertone;}
+
+function buildColorNarrative(a,axes,season){
+  const jewelryText={gold:'gold jewelry looks best on you',silver:'silver jewelry looks best on you',both:'both gold and silver look equally good on you',unsure:"you weren't sure which metal suits you best"}[a.jewelry]||'';
+  const sunText={tan:'you tan easily rather than burn',burn:'you burn rather than tan',both:'you tan and then burn',neither:"you're rarely in the sun"}[a.sun]||'';
+  const veinsText={blue:'your veins read blue or purple',green:'your veins read green',both:'your veins are a mix of blue and green'}[a.veins]||'';
+  const chromaText={bright:'you come alive in bright, saturated colors',muted:'you look best in soft, muted colors',both:'you responded well to both bright and muted colors'}[a.chroma]||'';
+  const contrastText={high:'there is noticeable contrast between your hair, skin and eyes',low:'your hair, skin and eyes blend softly into one another',medium:'your coloring has a balanced, moderate level of contrast'}[a.contrast]||'';
+  const undertoneWord=axes.undertone==='neutral'?'a true in-between (neutral) undertone':`a clearly ${axes.undertone} undertone`;
+  return `Based on what you told us — ${jewelryText}, ${sunText}, and ${veinsText} — your skin reads ${undertoneWord}. Layer in that ${contrastText}, and that ${chromaText}, and everything points to one specific color type: ${season.label}. ${season.desc}`;
+}
+const proportionTips={
+  petite:{longTorso:"Keep hemlines above the knee and reach for high-rise bottoms — this shortens the torso visually and lengthens the leg line, which matters most on a petite frame.",longLegs:"You can wear longer hemlines and midi lengths beautifully — the main thing to watch is oversized volume, which can overwhelm a petite frame fast.",balanced:"Most standard hem lengths will already work for you — a good tailor taking things in to your exact height is the single highest-impact thing you can do."},
+  average:{longTorso:"High-rise bottoms and slightly cropped tops help balance a longer torso — a belt sitting right at your natural waist does a lot of the work here.",longLegs:"Midi and maxi lengths are especially flattering on you — you can wear proportions a lot of people can't pull off.",balanced:"You can wear nearly any hem length or rise comfortably — dress to the occasion rather than to the proportion."},
+  tall:{longTorso:"Look for tops with a little extra body length and high-rise bottoms so the waistline doesn't sit too low on you.",longLegs:"Maxi lengths, wide-leg trousers and longline blazers all read intentional and elegant rather than overwhelming on your frame.",balanced:"Nearly every silhouette reads elongated and put-together on your frame — this is a genuine advantage, lean into it."}
+};
+function buildBodyNarrative(a,shapeData){
+  const fitText={tops:'tops fit you better than bottoms',bottoms:'bottoms fit you better than tops',both:'both tops and bottoms fit you well',neither:"neither tops nor bottoms fit great off the rack right now"}[a.fit]||'';
+  const weightText={belly:'you carry weight first in your belly/midsection',hips:'you carry weight first in your hips and thighs',upper:'you carry weight first in your upper body and arms',evenly:'you carry weight evenly all over'}[a.weight]||'';
+  const confText={shoulders:'your shoulders and collarbone',waist:'your waist',legs:'your legs',bust:'your bust',overall:'your overall silhouette'}[a.conf]||'your best features';
+  const shapeName=(shapeData.shape||'').replace(/^\S+\s/,'');
+  let out=`You told us ${fitText} and that ${weightText} — both classic markers of a ${shapeName}. You also said you feel most confident in ${confText}, so every recommendation below is built to keep highlighting that.`;
+  if(a.height&&a.proportion&&proportionTips[a.height]&&proportionTips[a.height][a.proportion]){out+=` One more thing that's specific to you: ${proportionTips[a.height][a.proportion]}`;}
+  return out;
+}
+
+const colorData={
+  lightSpring:{undertone:'Light Spring ✦',label:'Light Spring ✦',desc:'A warm undertone with light, delicate coloring. This client glows in warm colors kept light and clear — not deep, not muted.',metal:'Light Gold / Champagne ✦ — brighter gold reads better than antique or deep gold',neutrals:[{n:'Ivory',h:'#f5efe0'},{n:'Camel',h:'#d4b896'},{n:'Light Warm Gray',h:'#c9c0b3'},{n:'Soft Peach Beige',h:'#e8d4bc'}],signature:[{n:'Peach',h:'#f4a97f'},{n:'Coral',h:'#ef8354'},{n:'Light Aqua',h:'#8fd3c8'},{n:'Warm Yellow',h:'#f2c14e'},{n:'Apple Green',h:'#9bc25c'},{n:'Light Turquoise',h:'#6fc7c0'}],accents:[{n:'Champagne Gold',h:'#d9c48a'},{n:'Light Coral',h:'#f2967a'},{n:'Aqua',h:'#7fd4c9'}],accessory:'Bags — camel, ivory, light tan. Shoes — warm nude, light tan, coral. Jewelry — light/champagne gold always. Belts — light tan leather.',patterns:['Light warm florals and watercolor prints','Small-to-medium scale prints in warm, clear colors','Soft tropical or botanical prints','Avoid heavy, dark, or busy large-scale prints'],avoid:'Black, deep burgundy, icy pastels, and gray — all too heavy or cool for this light warm palette.',uRefs:[{l:'Light Spring Color Guide',u:'https://www.pinterest.com/search/pins/?q=light+spring+color+palette'}],nRefs:[{l:'Light Spring Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=light+spring+neutral+outfit+ideas'}],sRefs:[{l:'Light Spring Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=light+spring+season+outfit+ideas'}]},
+  trueSpring:{undertone:'True Spring ✦',label:'True Spring ✦',desc:'A classic warm undertone with clear, medium-depth coloring. This client thrives in vivid, golden-based warm colors.',metal:'Gold ✦ — bright, warm gold is the most flattering metal',neutrals:[{n:'Camel',h:'#c8a882'},{n:'Warm Ivory',h:'#f2ead8'},{n:'Golden Brown',h:'#8a6240'},{n:'Warm Khaki',h:'#b9a978'}],signature:[{n:'Coral',h:'#f2704b'},{n:'Golden Yellow',h:'#f0b429'},{n:'Grass Green',h:'#6fae44'},{n:'Turquoise',h:'#29a89a'},{n:'Warm Red',h:'#e0472b'},{n:'Tangerine',h:'#f2884b'}],accents:[{n:'Gold',h:'#c9a96e'},{n:'Bright Coral',h:'#f2704b'},{n:'Turquoise',h:'#29a89a'}],accessory:'Bags — camel, cognac, warm brown. Shoes — warm-toned nude, tan, coral. Jewelry — gold always. Belts — cognac leather.',patterns:['Bold warm florals and tropical prints','Medium-to-large scale prints','Tortoiseshell and warm animal prints','Bold prints on top balanced with warm solid bottoms'],avoid:'Black, icy pastels, cool gray, mauve, and silver-based tones.',uRefs:[{l:'True Spring Color Guide',u:'https://www.pinterest.com/search/pins/?q=true+spring+color+palette'}],nRefs:[{l:'True Spring Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=true+spring+neutral+outfit+ideas'}],sRefs:[{l:'True Spring Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=true+spring+season+outfit+ideas'}]},
+  brightSpring:{undertone:'Bright Spring ✦',label:'Bright Spring ✦',desc:'Vivid, high-clarity coloring that sits between spring warmth and winter brightness. This client glows in saturated, clean colors — never muted or dusty.',metal:'Gold or Bright Silver ✦ — either works as long as it is bright, not antiqued',neutrals:[{n:'Bright White',h:'#fbfbfb'},{n:'Warm Charcoal',h:'#3f3a38'},{n:'Camel',h:'#c9a882'},{n:'True Navy',h:'#223350'}],signature:[{n:'Hot Pink',h:'#ec1f6a'},{n:'Turquoise',h:'#14b8a6'},{n:'Bright Coral',h:'#f2543d'},{n:'Lemon Yellow',h:'#f2d13f'},{n:'Grass Green',h:'#55b02e'},{n:'Bright Periwinkle',h:'#4d6fe0'}],accents:[{n:'Gold',h:'#c9a96e'},{n:'Fuchsia',h:'#d4087a'},{n:'Bright Aqua',h:'#1fc6c6'}],accessory:'Bags — bright white, camel, true navy, statement color. Shoes — white, bright color, warm nude. Jewelry — bright gold or bright silver, mixed metals work. Belts — camel or navy.',patterns:['Bold graphic prints and color-blocking','High-contrast patterns','Clean geometric prints — avoid anything dusty or faded'],avoid:'Muted or dusty tones, beige-on-beige, and anything pastel-soft or washed out.',uRefs:[{l:'Bright Spring Color Guide',u:'https://www.pinterest.com/search/pins/?q=bright+spring+color+palette'}],nRefs:[{l:'Bright Spring Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=bright+spring+neutral+outfit+ideas'}],sRefs:[{l:'Bright Spring Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=bright+spring+season+outfit+ideas'}]},
+  lightSummer:{undertone:'Light Summer ✦',label:'Light Summer ✦',desc:'A cool undertone with a delicate, airy quality. This client is flattered by soft, light cool colors — never deep or vivid ones.',metal:'Silver or Rose Gold ✦ — soft, light metals only',neutrals:[{n:'Soft White',h:'#f4f2ee'},{n:'Light Gray',h:'#b9bdc4'},{n:'Powder Blue-Gray',h:'#a9b8c4'},{n:'Taupe',h:'#b7ada3'}],signature:[{n:'Powder Pink',h:'#eab8bf'},{n:'Periwinkle',h:'#9aa8d8'},{n:'Soft Lavender',h:'#b6a3cf'},{n:'Soft Aqua',h:'#9fcfd0'},{n:'Dusty Rose',h:'#c98fa0'},{n:'Sky Blue',h:'#a7cbe0'}],accents:[{n:'Silver',h:'#c7c9cc'},{n:'Soft Pink',h:'#eab8bf'},{n:'Lavender',h:'#b6a3cf'}],accessory:'Bags — soft gray, blush, soft white. Shoes — cool nude, soft gray, blush. Jewelry — silver or soft rose gold. Belts — soft taupe or gray.',patterns:['Soft watercolor florals','Delicate small-scale prints','Low-contrast tone-on-tone patterns'],avoid:'Black, orange, mustard, and deep rich tones — all too heavy for this light cool palette.',uRefs:[{l:'Light Summer Color Guide',u:'https://www.pinterest.com/search/pins/?q=light+summer+color+palette'}],nRefs:[{l:'Light Summer Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=light+summer+neutral+outfit+ideas'}],sRefs:[{l:'Light Summer Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=light+summer+season+outfit+ideas'}]},
+  trueSummer:{undertone:'True Summer ✦',label:'True Summer ✦',desc:'A classic cool undertone with soft, muted, medium-depth coloring. This client is flattered by dusty, blue-based colors rather than warm or high-contrast ones.',metal:'Silver ✦ — the most flattering metal for this palette',neutrals:[{n:'Cool Gray',h:'#9aa0a6'},{n:'Navy',h:'#33465e'},{n:'Soft White',h:'#f0f0ee'},{n:'Taupe Rose',h:'#baa3a0'}],signature:[{n:'Dusty Rose',h:'#c98a91'},{n:'Soft Burgundy',h:'#8f4a56'},{n:'Lavender',h:'#9c88c4'},{n:'Powder Blue',h:'#9bb8d3'},{n:'Sage',h:'#93a68c'},{n:'Mauve',h:'#a97c8a'}],accents:[{n:'Silver',h:'#c0c0c0'},{n:'Rose',h:'#c98a91'},{n:'Soft Plum',h:'#7d5a75'}],accessory:'Bags — navy, gray, soft rose. Shoes — cool-toned nude, navy, gray. Jewelry — silver always. Belts — navy or gray.',patterns:['Soft muted florals','Tone-on-tone patterns','Gentle geometric prints'],avoid:'Orange, warm gold, black, and bright neon — too warm or too harsh.',uRefs:[{l:'True Summer Color Guide',u:'https://www.pinterest.com/search/pins/?q=true+summer+color+palette'}],nRefs:[{l:'True Summer Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=true+summer+neutral+outfit+ideas'}],sRefs:[{l:'True Summer Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=true+summer+season+outfit+ideas'}]},
+  softSummer:{undertone:'Soft Summer ✦',label:'Soft Summer ✦',desc:'A cool-neutral undertone with a soft, muted quality. This client glows in dusty, blended colors — best avoiding both very bright and very warm tones.',metal:'Silver or Pewter ✦ — brushed, not shiny',neutrals:[{n:'Taupe',h:'#a99e93'},{n:'Soft Gray',h:'#9b9691'},{n:'Dusty Navy',h:'#3e4a5c'},{n:'Greige',h:'#b0a89c'}],signature:[{n:'Dusty Teal',h:'#5b8a86'},{n:'Mauve',h:'#9a6b73'},{n:'Soft Plum',h:'#77566e'},{n:'Muted Rose',h:'#bd8b8f'},{n:'Sage Green',h:'#8a9a7e'},{n:'Slate Blue',h:'#6e7f96'}],accents:[{n:'Pewter',h:'#9a9a9a'},{n:'Muted Rose',h:'#bd8b8f'},{n:'Dusty Teal',h:'#5b8a86'}],accessory:'Bags — taupe, dusty navy, greige. Shoes — muted rose, taupe, gray. Jewelry — brushed silver or pewter. Belts — taupe leather.',patterns:['Muted tone-on-tone prints','Soft blended florals','Avoid high contrast or neon patterns'],avoid:'Bright neon, pure black, orange, and high-contrast color blocking.',uRefs:[{l:'Soft Summer Color Guide',u:'https://www.pinterest.com/search/pins/?q=soft+summer+color+palette'}],nRefs:[{l:'Soft Summer Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=soft+summer+neutral+outfit+ideas'}],sRefs:[{l:'Soft Summer Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=soft+summer+season+outfit+ideas'}]},
+  softAutumn:{undertone:'Soft Autumn ✦',label:'Soft Autumn ✦',desc:'A warm-neutral undertone with a soft, muted quality. This client is flattered by dusty earthy colors — never bright or icy ones.',metal:'Soft Gold or Bronze ✦ — brushed, matte finishes',neutrals:[{n:'Warm Taupe',h:'#a68f74'},{n:'Soft Camel',h:'#c2a480'},{n:'Warm Gray',h:'#948575'},{n:'Mushroom',h:'#b4a690'}],signature:[{n:'Sage Green',h:'#8a9a6b'},{n:'Dusty Coral',h:'#c98a6b'},{n:'Warm Olive',h:'#7d7a4a'},{n:'Soft Rust',h:'#b56a4a'},{n:'Muted Gold',h:'#b99a55'},{n:'Terracotta',h:'#b96a4e'}],accents:[{n:'Bronze',h:'#a97848'},{n:'Soft Gold',h:'#c2a35c'},{n:'Dusty Coral',h:'#c98a6b'}],accessory:'Bags — camel, olive, warm taupe. Shoes — warm muted nude, camel, olive. Jewelry — bronze or soft gold. Belts — camel or olive leather.',patterns:['Muted botanical prints','Soft plaid','Tone-on-tone earthy prints'],avoid:'Icy pastels, pure black, bright fuchsia, and stark white.',uRefs:[{l:'Soft Autumn Color Guide',u:'https://www.pinterest.com/search/pins/?q=soft+autumn+color+palette'}],nRefs:[{l:'Soft Autumn Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=soft+autumn+neutral+outfit+ideas'}],sRefs:[{l:'Soft Autumn Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=soft+autumn+season+outfit+ideas'}]},
+  trueAutumn:{undertone:'True Autumn ✦',label:'True Autumn ✦',desc:'A classic warm undertone with rich, earthy, medium-to-deep coloring. This client thrives in warm, grounded colors with real depth.',metal:'Gold or Bronze ✦ — richer, warmer golds especially',neutrals:[{n:'Camel',h:'#b98a55'},{n:'Chocolate Brown',h:'#5c3d24'},{n:'Warm Olive',h:'#6e6b3f'},{n:'Cream',h:'#ede0c8'}],signature:[{n:'Rust',h:'#b5541f'},{n:'Mustard',h:'#c99a2e'},{n:'Forest Green',h:'#3f6b3f'},{n:'Pumpkin',h:'#d1732a'},{n:'Warm Brown',h:'#7a4a2a'},{n:'Teal',h:'#2f6b63'}],accents:[{n:'Gold',h:'#c9a05a'},{n:'Copper',h:'#b06a35'},{n:'Olive',h:'#6e6b3f'}],accessory:'Bags — cognac, chocolate brown, olive. Shoes — warm-toned nude, cognac, brown. Jewelry — gold or bronze. Belts — cognac leather.',patterns:['Rich botanical and animal prints','Plaid','Medium-to-large scale warm prints'],avoid:'Icy pastels, black, cool gray, bubblegum pink, and silver.',uRefs:[{l:'True Autumn Color Guide',u:'https://www.pinterest.com/search/pins/?q=true+autumn+color+palette'}],nRefs:[{l:'True Autumn Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=true+autumn+neutral+outfit+ideas'}],sRefs:[{l:'True Autumn Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=true+autumn+season+outfit+ideas'}]},
+  deepAutumn:{undertone:'Deep Autumn ✦',label:'Deep Autumn ✦',desc:'A warm undertone with deep, rich coloring. This client is flattered by deep, saturated warm colors that match natural depth — never pale or icy ones.',metal:'Gold or Copper ✦ — deep, rich tones',neutrals:[{n:'Chocolate Brown',h:'#4a3220'},{n:'Deep Olive',h:'#4f4f2c'},{n:'Espresso',h:'#3a2a1e'},{n:'Warm Charcoal',h:'#3c332c'}],signature:[{n:'Deep Rust',h:'#9c3f1e'},{n:'Burnt Orange',h:'#b5541f'},{n:'Deep Teal',h:'#1f5c56'},{n:'Bronze',h:'#8a5a2e'},{n:'Deep Gold',h:'#b5892e'},{n:'Burgundy',h:'#6e2430'}],accents:[{n:'Copper',h:'#b06a35'},{n:'Deep Gold',h:'#b5892e'},{n:'Bronze',h:'#8a5a2e'}],accessory:'Bags — espresso, dark brown, deep jewel tone. Shoes — cognac, dark brown, bold color. Jewelry — gold or copper. Belts — dark brown leather.',patterns:['Rich deep botanical prints','High-contrast warm patterns','Animal print'],avoid:'Pale pastels, icy tones, silver, and light gray — all too pale for this deep warm palette.',uRefs:[{l:'Deep Autumn Color Guide',u:'https://www.pinterest.com/search/pins/?q=deep+autumn+color+palette'}],nRefs:[{l:'Deep Autumn Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=deep+autumn+neutral+outfit+ideas'}],sRefs:[{l:'Deep Autumn Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=deep+autumn+season+outfit+ideas'}]},
+  brightWinter:{undertone:'Bright Winter ✦',label:'Bright Winter ✦',desc:'A cool-neutral undertone with vivid, high-clarity coloring. This client comes alive in saturated jewel tones and high-contrast combinations.',metal:'Silver or White Gold ✦ — bright, clean metals',neutrals:[{n:'Bright White',h:'#fafafa'},{n:'True Black',h:'#191919'},{n:'Charcoal',h:'#322f2e'},{n:'Icy Gray',h:'#cfd3d6'}],signature:[{n:'Fuchsia',h:'#d4087a'},{n:'Emerald',h:'#0e8a5e'},{n:'True Red',h:'#d21f2c'},{n:'Royal Blue',h:'#1e4fd6'},{n:'Hot Pink',h:'#ec1f6a'},{n:'Ice Blue',h:'#7fd1e0'}],accents:[{n:'Silver',h:'#c7c9cc'},{n:'Fuchsia',h:'#d4087a'},{n:'Emerald',h:'#0e8a5e'}],accessory:'Bags — black, white, jewel tone. Shoes — black, white, bold color. Jewelry — silver. Belts — black leather.',patterns:['Bold high-contrast prints','Color-blocking','Graphic prints'],avoid:'Muted earth tones, orange, warm camel, and dusty pastels.',uRefs:[{l:'Bright Winter Color Guide',u:'https://www.pinterest.com/search/pins/?q=bright+winter+color+palette'}],nRefs:[{l:'Bright Winter Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=bright+winter+neutral+outfit+ideas'}],sRefs:[{l:'Bright Winter Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=bright+winter+season+outfit+ideas'}]},
+  trueWinter:{undertone:'True Winter ✦',label:'True Winter ✦',desc:'A classic cool undertone with deep, clear coloring. This client is flattered by icy or jewel-toned colors with strong, cool clarity.',metal:'Silver or Platinum ✦ — the coolest, brightest metals',neutrals:[{n:'True Black',h:'#171717'},{n:'Pure White',h:'#fbfbfb'},{n:'Charcoal',h:'#2e2e2e'},{n:'Navy',h:'#16233b'}],signature:[{n:'Emerald',h:'#0d7a52'},{n:'Sapphire',h:'#164fa3'},{n:'True Red',h:'#c8102e'},{n:'Royal Purple',h:'#4b1e78'},{n:'Icy Pink',h:'#e6a6c7'},{n:'Fuchsia',h:'#c2126b'}],accents:[{n:'Silver',h:'#c0c0c0'},{n:'Sapphire',h:'#164fa3'},{n:'Icy Pink',h:'#e6a6c7'}],accessory:'Bags — black, navy, jewel tone. Shoes — black, navy, white. Jewelry — silver or platinum. Belts — black leather.',patterns:['High-contrast graphic prints','Black-and-white','Bold color-blocking'],avoid:'Warm earth tones, orange, mustard, camel, and muted/dusty colors.',uRefs:[{l:'True Winter Color Guide',u:'https://www.pinterest.com/search/pins/?q=true+winter+color+palette'}],nRefs:[{l:'True Winter Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=true+winter+neutral+outfit+ideas'}],sRefs:[{l:'True Winter Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=true+winter+season+outfit+ideas'}]},
+  deepWinter:{undertone:'Deep Winter ✦',label:'Deep Winter ✦',desc:'A cool undertone with deep, rich coloring. This client is flattered by deep saturated colors with cool undertones — never muted or pastel shades.',metal:'Silver or Platinum ✦ — deep jewel tones with cool metals',neutrals:[{n:'True Black',h:'#141414'},{n:'Deep Charcoal',h:'#2a2a2a'},{n:'Pure White',h:'#f7f7f7'},{n:'Deep Navy',h:'#101c33'}],signature:[{n:'Deep Burgundy',h:'#5e1526'},{n:'Forest Green',h:'#123d2a'},{n:'Sapphire',h:'#123a7a'},{n:'Deep Purple',h:'#3a1450'},{n:'True Red',h:'#b3122a'},{n:'Deep Fuchsia',h:'#8a0f52'}],accents:[{n:'Silver',h:'#c0c0c0'},{n:'Deep Burgundy',h:'#5e1526'},{n:'Sapphire',h:'#123a7a'}],accessory:'Bags — black, deep jewel tone. Shoes — black, deep color. Jewelry — silver or platinum. Belts — black leather.',patterns:['Bold deep-toned prints','High-contrast prints','Minimal busy patterns'],avoid:'Pastels, muted earth tones, orange, and light beige.',uRefs:[{l:'Deep Winter Color Guide',u:'https://www.pinterest.com/search/pins/?q=deep+winter+color+palette'}],nRefs:[{l:'Deep Winter Neutral Outfits',u:'https://www.pinterest.com/search/pins/?q=deep+winter+neutral+outfit+ideas'}],sRefs:[{l:'Deep Winter Outfit Inspo',u:'https://www.pinterest.com/search/pins/?q=deep+winter+season+outfit+ideas'}]}
+};
+
+const premiumColorData={
+  warm:{seasonal:['Spring — warm pastels: blush with yellow undertone, peach, warm mint, soft coral','Summer — lean into terracotta, coral, warm white, olive green — rich and alive','Autumn — this is YOUR season: camel, burnt orange, mustard, forest green — wear them all','Winter — deep warm tones: burgundy with warm undertone, forest green, rich cognac brown'],occasion:['Casual everyday — camel or cream base with one warm color pop like rust or terracotta','Work — olive, warm brown, forest green — professional and completely unique','Evening out — rust, deep terracotta, warm red with gold jewelry — rich and stunning','Special events — mustard, forest green, copper accessories — completely unforgettable'],makeup:['Lip colors — warm reds, terracotta, peach, coral, brick — all absolutely stunning','Eye colors — warm browns, copper, bronze, gold, olive green shadow — always enhance','Blush — peach, warm coral, apricot — enhances natural warmth','Foundation — look for warm, golden or yellow undertone — never pink or cool beige','Avoid — cool pinks, mauve, blue-toned reds on lips'],hair:['Highlights — honey, golden, caramel, auburn, copper — all stunning','Lowlights — rich warm brown, chestnut, coffee tones','Color to avoid — ash, platinum, blue-black — these fight natural warmth','Rose gold — beautiful on warm undertones'],foundation:'Look for foundations labeled warm, golden, yellow, peach or beige. Avoid labels that say cool, pink or rosy. Test on jawline in natural light. Brands often mark warm undertones as W or Y in their shade system.',makeupRefs:[{l:'Warm Tone Makeup Inspo',u:'https://www.pinterest.com/search/pins/?q=warm+undertone+makeup+looks'},{l:'Terracotta Makeup Ideas',u:'https://www.pinterest.com/search/pins/?q=terracotta+makeup+look'}]},
+  cool:{seasonal:['Spring — icy pastels: pale blue, soft lavender, cool mint — luminous and fresh','Summer — cool brights: cobalt, fuchsia, emerald — saturated and striking','Autumn — cool versions: plum, cool burgundy, teal — skip warm oranges','Winter — this is YOUR season: deep jewel tones, black, bright white, icy silver'],occasion:['Casual everyday — navy and cool gray as base with jewel tone accent','Work — charcoal, navy, cool gray — crisp clean and commanding presence','Evening — emerald, plum, cobalt with silver jewelry — dramatic and unforgettable','Special events — burgundy, deep purple, icy silver accents — truly stunning'],makeup:['Lip colors — cool reds, berry, plum, mauve, cool pink — all stunning','Eye colors — silver, gray, cool taupe, navy liner, purple shadow','Blush — cool pink, soft rose, berry tones — brightens the complexion','Foundation — look for cool, pink or neutral undertone — never warm or golden','Avoid — orange toned lipsticks, warm bronzers, gold highlight that looks yellow'],hair:['Highlights — platinum, ash blonde, cool brown, icy highlights','Lowlights — cool dark brown, ash, cool espresso tones','Color to avoid — warm golden, honey, copper, red tones','Gray hair — embrace it fully, cool gray and silver are incredibly striking'],foundation:'Look for foundations labeled cool, pink, rosy or neutral when it looks pink-toned. Avoid labels that say warm, golden or yellow. Brands often mark cool undertones as C or P in their shade system.',makeupRefs:[{l:'Cool Tone Makeup Inspo',u:'https://www.pinterest.com/search/pins/?q=cool+undertone+makeup+looks'},{l:'Jewel Tone Makeup Ideas',u:'https://www.pinterest.com/search/pins/?q=jewel+tone+makeup+look'}]},
+  neutral:{seasonal:['Spring — soft dusty pastels: blush, sage, soft lavender, dusty peach','Summer — muted brights: dusty rose, sage green, warm mauve, dusty blue','Autumn — warm neutrals: taupe, camel, dusty rose with warm accessories','Winter — deep muted tones: warm wine, deep sage, warm charcoal'],occasion:['Casual everyday — taupe and greige base with one muted color accent','Work — warm navy, soft white, taupe — effortlessly polished','Evening — warm mauve, dusty rose, muted berry with rose gold jewelry','Special events — deep sage, warm wine, rose gold accessories'],makeup:['Lip colors — dusty rose, warm mauve, soft berry, nude with warm undertone','Eye colors — taupe, warm brown, rose gold, soft bronze, dusty pink','Blush — warm peach, soft rose, dusty pink — all work beautifully','Foundation — both warm and cool toned work — test in natural light','Avoid — very warm orange tones or very cool pink extremes'],hair:['Highlights — honey or ash both work — choose based on preference','Lowlights — warm brown or cool brown both complement','Rose gold, auburn or warm ash — all unique and stunning','If going gray — both warm silver and cool silver work beautifully'],foundation:'Look for foundations labeled neutral, balanced or beige without strong warm or cool pull. Test both a warm and cool shade on jawline. Rose gold highlighters are particularly stunning. Brands often mark neutral as N.',makeupRefs:[{l:'Neutral Tone Makeup Inspo',u:'https://www.pinterest.com/search/pins/?q=neutral+undertone+makeup+looks'},{l:'Dusty Rose Makeup Ideas',u:'https://www.pinterest.com/search/pins/?q=dusty+rose+makeup+look'}]},
+  deep:{seasonal:['Spring — jewel tones work year round — fuchsia and cobalt are especially stunning','Summer — bold brights: fuchsia, cobalt, citrus yellow, hot coral — absolutely iconic','Autumn — burnt orange, deep gold, ruby red, warm cognac — rich and deeply grounding','Winter — deep purple, emerald, royal blue, bright white — dramatic and powerful'],occasion:['Casual everyday — bright white or camel base with one bold color pop','Work — deep navy, emerald, cobalt — commanding polished and memorable','Evening — fuchsia, ruby red, deep purple with gold jewelry — pure icon energy','Special events — all-over jewel tone or bold color blocking — unforgettable'],makeup:['Lip colors — bold berry, deep plum, ruby red, bright coral, warm terracotta','Eye colors — gold, copper, bronze, deep rich brown, jewel toned liner','Blush — deep rose, warm berry, rich peach — adds dimension and warmth','Foundation — look for rich deep tones with warm or neutral undertone — never ashy','Avoid — very light or pastel lip colors that disappear — always go bolder'],hair:['Highlights — honey, copper, auburn, warm golden — stunning contrast','Lowlights — deep espresso, rich dark brown, blue-black','Color to try — deep burgundy, copper balayage, auburn — striking','If going gray — silver and gray hair against deep skin is absolutely iconic'],foundation:'Look for foundations with rich deep coverage and warm or neutral undertone. Avoid foundations that look gray or ashy. Always test in natural daylight. Fenty Beauty, NARS and MAC have excellent deep options. Look for W or N shades in deep range.',makeupRefs:[{l:'Deep Skin Tone Makeup',u:'https://www.pinterest.com/search/pins/?q=dark+skin+tone+makeup+looks'},{l:'Bold Lip on Deep Skin',u:'https://www.pinterest.com/search/pins/?q=bold+lip+dark+skin'}]}
+};
+
+const bodyData={
+  apple:{shape:'🍎 Apple Shape',desc:'Weight carried in the midsection with slimmer legs and less defined waist.',goal:'Create the illusion of a defined waist while drawing attention to beautiful legs and neckline.',sils:['A-line dresses and skirts — flare beautifully away from the midsection','Empire waist styles — define just below the bust','Wrap dresses in flowy fabrics — universally flattering','Fit and flare silhouettes — create shape and draw attention downward','Maxi dresses with a defined waistline — elongate and balance'],tops:['V-necks and deep scoop necks','Off shoulder styles — highlight the décolletage','Flowy tops that skim the body','Structured blazers worn open — create strong vertical lines','Peplum tops — add structure and waist definition','Dark solid colors on top — minimize the midsection'],bots:['Wide leg trousers in dark colors','Straight leg pants in dark colors','A-line midi skirts','Flowy maxi skirts','High waisted wide leg jeans'],acc:['Statement earrings — draw attention to the face','Long necklaces — create vertical lines','Simple belts worn just under the bust','Structured bags — add polish','Heels — lengthen the leg'],avd:['Tight fitted tops that cling around the midsection','Cropped tops that end at the belly','Clingy jersey fabrics around the middle','Belts cinched at the natural waist','Bodycon dresses'],fabGood:'Structured woven fabrics — cotton, linen and ponte. Flowy chiffon and georgette for tops. Matte fabrics that skim.',fabAvoid:'Clingy jersey and spandex around the midsection. Satin and silk that highlight. Sheer fabrics over the belly.',occasion:['Casual — flowy wrap top + wide leg trousers + simple sneakers','Work — blazer open over empire waist blouse + straight leg trousers','Evening — A-line midi dress with V-neck + heels','Shopping trip — comfortable wrap dress — easy to try on and always flattering'],shopTip:'In the fitting room hold pieces up to the body first. Go straight to wrap styles and A-lines. V-necklines are your instant friend. Try everything on before deciding.',shopKeywords:'Search: wrap dress, A-line dress, empire waist, flowy top, V-neck blouse, wide leg pants, midi A-line skirt, flowy maxi.',avoidKeywords:'Avoid searching: bodycon, fitted dress, mini skirt, crop top, skinny jeans, high waisted tight fit.',shapeRefs:[{l:'Apple Shape Style Guide',u:'https://www.pinterest.com/search/pins/?q=apple+body+shape+outfits'},{l:'How to Dress Apple Shape',u:'https://www.whowhatwear.com/apple-body-shape'}],silRefs:[{l:'A-Line & Wrap Dress Ideas',u:'https://www.pinterest.com/search/pins/?q=a+line+wrap+dress+outfit+ideas'}]},
+  pear:{shape:'🍐 Pear Shape',desc:'Narrower shoulders and bust with fuller hips and thighs. Beautifully defined waist.',goal:'Balance the silhouette by drawing attention to the upper body and highlighting the defined waist.',sils:['A-line skirts and dresses — perfect for this shape','Wrap dresses that define the waist','Fit and flare dresses — celebrate the defined waist','High waisted wide leg trousers','Flowy midi and maxi skirts'],tops:['Boat necks and wide scoop necks','Off shoulder and cold shoulder tops','Bold prints and bright colors on top','Statement collars and embellished shoulders','Structured blazers with shoulder definition','Puff sleeves — add upper body volume'],bots:['Wide leg trousers in dark solid colors','A-line skirts in any length','Flowy midi skirts','Dark wash straight leg jeans','High waisted styles'],acc:['Statement necklaces and earrings — draw the eye up','Bold scarves or statement collars','Structured bags at shoulder or higher','Belts at natural waist — highlight the beautiful waist','Avoid bags at hip level'],avd:['Clingy fabrics on hips and thighs','Horizontal stripes on the bottom half','Pencil skirts and bodycon','Patch pockets and embellishment on hips','Tapered trousers','Skinny jeans with fitted tops'],fabGood:'Structured fabrics on bottom — denim, ponte, thick cotton. Flowy and textured fabrics on top. Stretch fabrics that move with curves.',fabAvoid:'Clingy jersey on hips and thighs. Satin on the lower body. Shiny fabrics below the waist.',occasion:['Casual — bold print top + wide leg dark jeans + sneakers','Work — structured blazer + A-line midi skirt + simple top','Evening — off shoulder top + A-line midi skirt + heels','Shopping trip — wrap dress or A-line dress — easy to try on and consistently flattering'],shopTip:'Go up a size in bottoms if needed and tailor if possible — the waist is always the priority. A-line silhouettes are the safest choice. Bold tops are your best friend — shop tops first.',shopKeywords:'Search: A-line dress, wrap dress, wide leg trousers, off shoulder top, bold print blouse, puff sleeve top, flowy midi skirt, fit and flare.',avoidKeywords:'Avoid searching: bodycon, pencil skirt, skinny jeans, cigarette trousers, horizontal stripe bottoms.',shapeRefs:[{l:'Pear Shape Style Guide',u:'https://www.pinterest.com/search/pins/?q=pear+body+shape+outfits'},{l:'How to Dress Pear Shape',u:'https://www.whowhatwear.com/pear-body-shape'}],silRefs:[{l:'A-Line & Fit and Flare Ideas',u:'https://www.pinterest.com/search/pins/?q=a+line+fit+flare+pear+shape'}]},
+  hourglass:{shape:'⌛ Hourglass Shape',desc:'Balanced bust and hips with a beautifully defined waist. Almost every silhouette works.',goal:'Celebrate and highlight natural curves and defined waist.',sils:['Wrap dresses — literally designed for this body type','Fit and flare dresses — celebrate the curves','Belted styles in any silhouette','Bodycon silhouettes if comfortable','Pencil skirts with a fitted top'],tops:['Wrap tops — designed for curves','V-necks that follow the body naturally','Fitted and tailored tops','Crop tops with high waisted bottoms','Button down shirts tied at the waist','Most necklines work — choose based on preference'],bots:['High waisted everything','Pencil skirts and midi skirts','Wide leg and straight leg trousers','Fit and flare skirts','High waisted jeans in any wash'],acc:['Belts — always wear one when possible','Waist-defining accessories','Bags in any size','Statement jewelry in any style','V-neck pendants and layered necklaces'],avd:['Boxy oversized shapes that hide the waist','Drop waist styles','Shapeless shift dresses','Very stiff structured pieces that fight curves','Anything that adds bulk without definition'],fabGood:'Almost everything works. Stretchy fabrics that follow curves. Structured wovens. Wrap and draped fabrics.',fabAvoid:'Very stiff boxy fabrics that fight the curves. Fabrics with no stretch that gap at the waist.',occasion:['Casual — high waisted jeans + wrap top or fitted tee','Work — fitted blazer + pencil skirt or tailored trousers','Evening — wrap dress or bodycon midi + heels','Shopping trip — wrap dress or high waisted jeans + fitted top — perfect reference'],shopTip:'Everything in the fitting room should follow the body naturally. Always look for stretch fabrics or tailoring options. Buy for the waist and adjust the rest.',shopKeywords:'Search: wrap dress, fitted dress, belted dress, high waisted jeans, pencil skirt, fit and flare, bodycon midi, tailored blazer.',avoidKeywords:'Avoid searching: boxy top, oversized blazer, drop waist, shift dress, shapeless dress.',shapeRefs:[{l:'Hourglass Shape Style Guide',u:'https://www.pinterest.com/search/pins/?q=hourglass+body+shape+outfits'},{l:'How to Dress Hourglass',u:'https://www.whowhatwear.com/hourglass-body-shape'}],silRefs:[{l:'Wrap & Belted Outfit Ideas',u:'https://www.pinterest.com/search/pins/?q=wrap+dress+belted+hourglass+outfit'}]},
+  rectangle:{shape:'📏 Rectangle Shape',desc:'Measurements are similar throughout. Athletic build with less defined waist.',goal:'Create curves and waist definition through silhouette, layering and strategic details.',sils:['Peplum tops and dresses','Belted styles — create a waist','Fit and flare dresses — create curves','Wrap dresses and tops','A-line skirts with a fitted top'],tops:['Peplum tops — add waist definition','Ruffles and embellishments','Crop tops with high waisted bottoms','Bold prints and textures','Off shoulder and statement necklines','Strategic layering — blazers and jackets'],bots:['Full and A-line skirts','Wide leg trousers with fitted belted top','High waisted bottoms always','Pleated skirts — add volume','Ruffled and tiered skirts'],acc:['Wide belts at natural waist — create instant definition','Statement earrings and necklaces','Layered jewelry','Hip-level bags or belt bags'],avd:['Straight shift dresses with no shape','Matching sets same color no contrast','Boxy silhouettes with no definition','Very fitted pieces with no waist detail','Dropped waist styles'],fabGood:'Structured fabrics that add shape — ponte, thick cotton, denim. Fabrics with texture. Fabrics that hold a peplum or flare.',fabAvoid:'Very soft drapey fabrics with no structure. Clingy fabrics that show the straight silhouette.',occasion:['Casual — crop top + high waisted wide leg jeans + belt','Work — peplum blazer or belted wrap dress','Evening — fit and flare dress or peplum top + skirt','Shopping trip — try everything with a belt first, it reveals what works'],shopTip:'In the fitting room always try a belt on everything — it transforms the silhouette. Bring a wide belt to every shopping session as a styling tool.',shopKeywords:'Search: peplum top, peplum dress, belted dress, fit and flare dress, wrap dress, ruffled skirt, tiered skirt, A-line skirt.',avoidKeywords:'Avoid searching: shift dress, boxy top, drop waist, matching set same color.',shapeRefs:[{l:'Rectangle Shape Style Guide',u:'https://www.pinterest.com/search/pins/?q=rectangle+body+shape+outfits'},{l:'How to Dress Rectangle Shape',u:'https://www.whowhatwear.com/rectangle-body-shape'}],silRefs:[{l:'Peplum & Belted Outfit Ideas',u:'https://www.pinterest.com/search/pins/?q=peplum+belted+rectangle+outfit'}]},
+  inverted:{shape:'🔺 Inverted Triangle Shape',desc:'Broader shoulders and fuller bust with narrower hips.',goal:'Balance the strong upper body by drawing attention downward and adding volume to hips and legs.',sils:['Wide leg trousers with a simple top','A-line and flared skirts','Fit and flare dresses','High waisted bottoms with bold prints','Maxi skirts with volume'],tops:['V-necks and scoop necks','Simple halter necks','Dark solid colors on top','Flowy and draped tops','Simple fitted tees with statement bottoms'],bots:['Bold prints and bright colors on bottom','Wide leg and flared trousers','Full and A-line skirts','High waisted bottoms to add hip definition','Ruffled and tiered skirts'],acc:['Long pendant necklaces','Hip bags and belt bags','Bold bags at hip level','Ankle boots and statement shoes','Narrow drop earrings'],avd:['Boat necks and very wide necklines','Shoulder pads and puff sleeves','Strapless styles that emphasize shoulders','Tapered trousers and pencil skirts','Heavy embellishment on upper body'],fabGood:'Flowy fabrics on the bottom — chiffon, georgette, flared denim. Simple structured fabrics on top. Matte fabrics on the upper body.',fabAvoid:'Stiff structured fabrics on top that add shoulder width. Shiny or embellished fabrics on the upper body.',occasion:['Casual — simple fitted tee + wide leg printed pants','Work — simple blouse + A-line midi skirt','Evening — simple dark top + bold printed or flared skirt','Shopping trip — bring simple fitted tops in dark colors, focus all energy on statement bottoms'],shopTip:'Focus on the bottoms first — that is entirely where the magic happens. Try every wide leg, A-line and flared option available. Budget more for the bottoms than the tops.',shopKeywords:'Search: wide leg pants, flared trousers, A-line skirt, tiered skirt, bold print skirt, ruffled skirt, V-neck top, simple fitted top.',avoidKeywords:'Avoid searching: boat neck, puff sleeve top, off shoulder, strapless, bodycon dress, pencil skirt, embellished top.',shapeRefs:[{l:'Inverted Triangle Style Guide',u:'https://www.pinterest.com/search/pins/?q=inverted+triangle+body+shape+outfits'},{l:'How to Dress Inverted Triangle',u:'https://www.whowhatwear.com/inverted-triangle-body-shape'}],silRefs:[{l:'Wide Leg & Flared Skirt Ideas',u:'https://www.pinterest.com/search/pins/?q=wide+leg+flared+inverted+triangle'}]}
+};
+
+function switchTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.sec').forEach(x=>x.classList.remove('active'));document.querySelector(`[onclick="switchTab('${t}')"]`).classList.add('active');document.getElementById(`sec-${t}`).classList.add('active');}
+function sel(btn,k,v){btn.parentElement.querySelectorAll('.qopt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');(btn.closest('#sec-color')?CA:BA)[k]=v;}
+function renderSW(id,arr){document.getElementById(id).innerHTML=arr.map(s=>`<div class="sw"><div class="sw-circle" style="background:${s.h};"></div><span class="sw-name">${s.n}</span></div>`).join('');}
+function renderRefs(id,arr){if(!document.getElementById(id)||!arr)return;document.getElementById(id).innerHTML=arr.map(r=>`<a href="${r.u}" target="_blank" class="ref-link">${r.l} ↗</a>`).join('');}
+function genColor(){
+  const name=document.getElementById('cn-color').value||'Client';
+  const{key:seasonKey,axes}=getSeason(CA);const d=colorData[seasonKey];const shape=BA.shape||'hourglass';
+  const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl ✦';
+  const pd=premiumColorData[getPremiumBucket(axes)];
+  document.getElementById('cn-color-disp').textContent=name;
+  document.getElementById('color-narrative').textContent=buildColorNarrative(CA,axes,d);
+  document.getElementById('undertone-r').textContent=d.label||d.undertone;
+  document.getElementById('undertone-d').textContent=d.desc;
+  document.getElementById('metal-r').textContent=d.metal;
+  document.getElementById('accessory-r').textContent=d.accessory;
+  document.getElementById('avoid-r').textContent=d.avoid;
+  document.getElementById('foundation-r').textContent=pd.foundation;
+  document.getElementById('arch-color').textContent=arch;
+  document.getElementById('pattern-r').innerHTML=d.patterns.map(p=>`<li class="ritem">${p}</li>`).join('');
+  document.getElementById('seasonal-r').innerHTML=pd.seasonal.map(s=>`<li class="ritem gold">${s}</li>`).join('');
+  document.getElementById('occasion-color-r').innerHTML=pd.occasion.map(o=>`<li class="ritem gold">${o}</li>`).join('');
+  document.getElementById('makeup-r').innerHTML=pd.makeup.map(m=>`<li class="ritem gold">${m}</li>`).join('');
+  document.getElementById('hair-r').innerHTML=pd.hair.map(h=>`<li class="ritem gold">${h}</li>`).join('');
+  renderSW('neutral-sw',d.neutrals);renderSW('sig-sw',d.signature);renderSW('accent-sw',d.accents);
+  renderRefs('undertone-refs',d.uRefs);renderRefs('makeup-refs',pd.makeupRefs);
+  document.getElementById('color-res').classList.add('vis');
+  document.getElementById('color-res').scrollIntoView({behavior:'smooth'});
+  colorGenerated=true;updateExportState();
+}
+function genBody(){
+  const name=document.getElementById('cn-body').value||'Client';
+  const shape=BA.shape;if(!shape){alert('Please select a body shape in Question 06');return;}
+  const d=bodyData[shape];const{key:seasonKey}=getSeason(CA);const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl ✦';
+  document.getElementById('cn-body-disp').textContent=name;
+  document.getElementById('body-narrative').textContent=buildBodyNarrative(BA,d);
+  document.getElementById('shape-r').textContent=d.shape;
+  document.getElementById('shape-d').textContent=d.desc;
+  document.getElementById('goal-r').textContent=d.goal;
+  document.getElementById('arch-body').textContent=arch;
+  document.getElementById('sil-r').innerHTML=d.sils.map(s=>`<li class="ritem">${s}</li>`).join('');
+  document.getElementById('tops-r').innerHTML=d.tops.map(s=>`<li class="ritem">${s}</li>`).join('');
+  document.getElementById('bots-r').innerHTML=d.bots.map(s=>`<li class="ritem">${s}</li>`).join('');
+  document.getElementById('acc-r').innerHTML=d.acc.map(s=>`<li class="ritem">${s}</li>`).join('');
+  document.getElementById('avoid-r-body').innerHTML=d.avd.map(s=>`<li class="ritem avoid">${s}</li>`).join('');
+  document.getElementById('fab-good').textContent=d.fabGood;
+  document.getElementById('fab-avoid').textContent=d.fabAvoid;
+  document.getElementById('occasion-r').innerHTML=d.occasion.map(o=>`<li class="ritem gold">${o}</li>`).join('');
+  document.getElementById('shop-tip').textContent=d.shopTip;
+  document.getElementById('shop-keywords').textContent=d.shopKeywords;
+  document.getElementById('avoid-keywords').textContent=d.avoidKeywords;
+  renderRefs('shape-refs',d.shapeRefs);renderRefs('sil-refs',d.silRefs);
+  document.getElementById('body-res').classList.add('vis');
+  document.getElementById('body-res').scrollIntoView({behavior:'smooth'});
+  bodyGenerated=true;updateExportState();
+}
+function copyColorHub(){
+  const name=document.getElementById('cn-color').value||'Client';
+  const{key:seasonKey,axes}=getSeason(CA);const d=colorData[seasonKey];const shape=BA.shape||'—';const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl';
+  const text=`STYLE ANALYSIS — ${name}\n\nStyle Archetype: ${arch}\nColor Type: ${d.label}\nMetal Tone: ${d.metal}\nPower Neutrals: ${d.neutrals.map(n=>n.n).join(', ')}\nSignature Colors: ${d.signature.map(s=>s.n).join(', ')}\nColors to Avoid: ${d.avoid}\n\n✦ Full analysis in your Style Guide`;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied for Style Hub! ✦'));
+}
+function copyColorGuide(){
+  const name=document.getElementById('cn-color').value||'Client';
+  const{key:seasonKey,axes}=getSeason(CA);const d=colorData[seasonKey];const shape=BA.shape||'—';const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl';
+  const pd=premiumColorData[getPremiumBucket(axes)];
+  const narrative=buildColorNarrative(CA,axes,d);
+  const notes=document.getElementById('cnotes').value;
+  const text=`═══════════════════════════════════\nHERSTYLEVAULT — COLOR ANALYSIS\n${name} · The Full Reveal (Full)\n═══════════════════════════════════\n\n✦ STYLE ARCHETYPE: ${arch}\n\nCOLOR TYPE: ${d.label}\n${narrative}\n\nMETAL TONE: ${d.metal}\n\nFULL NEUTRAL PALETTE:\n${d.neutrals.map(n=>`• ${n.n}`).join('\n')}\n\nALL 6 SIGNATURE COLORS:\n${d.signature.map(s=>`• ${s.n}`).join('\n')}\n\nACCENT COLORS:\n${d.accents.map(a=>`• ${a.n}`).join('\n')}\n\nACCESSORY GUIDE:\n${d.accessory}\n\nPATTERN GUIDANCE:\n${d.patterns.map(p=>`• ${p}`).join('\n')}\n\nSEASONAL GUIDE:\n${pd.seasonal.map(s=>`• ${s}`).join('\n')}\n\nCOLORS BY OCCASION:\n${pd.occasion.map(o=>`• ${o}`).join('\n')}\n\nMAKEUP DIRECTION:\n${pd.makeup.map(m=>`• ${m}`).join('\n')}\n\nHAIR COLOR GUIDE:\n${pd.hair.map(h=>`• ${h}`).join('\n')}\n\nFOUNDATION GUIDE:\n${pd.foundation}\n\nCOLORS TO AVOID:\n${d.avoid}${notes?'\n\nNOTES:\n'+notes:''}\n\n— Adebisi · HerStyleVault ✦`;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied for Style Guide! ✦'));
+}
+function copyBodyHub(){
+  const name=document.getElementById('cn-body').value||'Client';
+  const shape=BA.shape;if(!shape)return;
+  const d=bodyData[shape];const{key:seasonKey}=getSeason(CA);const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl';
+  const text=`BODY ANALYSIS — ${name}\n\nStyle Archetype: ${arch}\nBody Shape: ${d.shape}\nStyling Goal: ${d.goal}\nBest Silhouette: ${d.sils[0]}\nBest Top: ${d.tops[0]}\n\n✦ Full analysis in your Style Guide`;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied for Style Hub! ✦'));
+}
+function copyBodyGuide(){
+  const name=document.getElementById('cn-body').value||'Client';
+  const shape=BA.shape;if(!shape)return;
+  const d=bodyData[shape];const{key:seasonKey}=getSeason(CA);const family=SEASON_FAMILY[seasonKey];const arch=archetypesBySeasonFamily[family]?.[shape]||'That Girl';
+  const narrative=buildBodyNarrative(BA,d);
+  const notes=document.getElementById('bnotes').value;
+  const text=`═══════════════════════════════════\nHERSTYLEVAULT — BODY ANALYSIS\n${name} · The Full Reveal (Full)\n═══════════════════════════════════\n\n✦ STYLE ARCHETYPE: ${arch}\n\nBODY SHAPE: ${d.shape}\n${d.desc}\n${narrative}\n\nSTYLING GOAL: ${d.goal}\n\nCOMPLETE SILHOUETTE GUIDE:\n${d.sils.map(s=>`• ${s}`).join('\n')}\n\nFULL TOPS & NECKLINES:\n${d.tops.map(s=>`• ${s}`).join('\n')}\n\nFULL BOTTOMS & DRESSES:\n${d.bots.map(s=>`• ${s}`).join('\n')}\n\nACCESSORY STYLING:\n${d.acc.map(s=>`• ${s}`).join('\n')}\n\nFABRIC GUIDE:\nBest: ${d.fabGood}\nAvoid: ${d.fabAvoid}\n\nCOMPLETE AVOID LIST:\n${d.avd.map(s=>`• ${s}`).join('\n')}\n\nOCCASION-SPECIFIC STYLING:\n${d.occasion.map(o=>`• ${o}`).join('\n')}\n\nSHOPPING TRIP STRATEGY:\n${d.shopTip}\n\nSHOPPING KEYWORDS:\n${d.shopKeywords}\n\nAVOID SEARCHING:\n${d.avoidKeywords}${notes?'\n\nNOTES:\n'+notes:''}\n\n— Adebisi · HerStyleVault ✦`;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied for Style Guide! ✦'));
+}
+function resetColor(){document.querySelectorAll('#sec-color .qopt').forEach(b=>b.classList.remove('sel'));document.getElementById('cnotes').value='';document.getElementById('color-res').classList.remove('vis');Object.keys(CA).forEach(k=>delete CA[k]);colorGenerated=false;updateExportState();}
+function resetBody(){document.querySelectorAll('#sec-body .qopt').forEach(b=>b.classList.remove('sel'));document.getElementById('bnotes').value='';document.getElementById('body-res').classList.remove('vis');Object.keys(BA).forEach(k=>delete BA[k]);bodyGenerated=false;updateExportState();}
+
+/* ===== Outfit Builds ===== */
+function renderOutfitSlots(){
+  const wrap=document.getElementById('outfit-slots');
+  let html='';
+  for(let i=0;i<OUTFIT_COUNT;i++){
+    html+=`<div class="outfit-slot">
+      <p class="qlabel">Outfit ${i+1}</p>
+      <input type="text" class="outfit-caption" id="outfit-caption-${i}" placeholder="Outfit ${i+1} — e.g. Weekend Brunch" oninput="updateOutfitCaption(${i},this.value)">
+      <div class="outfit-upload-row">
+        <label class="outfit-file-btn">Upload Photo<input type="file" accept="image/*" style="display:none" onchange="handleOutfitUpload(event,${i})"></label>
+        <div class="outfit-thumb-wrap" id="outfit-thumb-${i}"></div>
+      </div>
+    </div>`;
+  }
+  wrap.innerHTML=html;
+}
+function handleOutfitUpload(evt,i){
+  const file=evt.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    outfits[i]=outfits[i]||{};
+    outfits[i].img=e.target.result;
+    document.getElementById('outfit-thumb-'+i).innerHTML=`<img src="${e.target.result}" class="outfit-thumb"/>`;
+    updateExportState();
+  };
+  reader.readAsDataURL(file);
+}
+function updateOutfitCaption(i,val){outfits[i]=outfits[i]||{};outfits[i].caption=val;}
+function updateExportState(){
+  const btn=document.getElementById('exportPdfBtn'),note=document.getElementById('exportPdfNote');
+  if(!btn)return;
+  if(colorGenerated&&bodyGenerated){
+    btn.disabled=false;
+    const n=outfits.filter(o=>o&&o.img).length;
+    note.textContent=`Ready to export. ${n} of ${OUTFIT_COUNT} outfit build photo(s) added so far — photos are optional.`;
+  }else{
+    btn.disabled=true;
+    note.textContent='Generate both Color and Body analysis first.';
+  }
+}
+
+/* ===== PDF Export Engine ===== */
+function pdfEsc(s){return(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pdfPage(cls,inner){return `<div class="pdf-page ${cls||''}">${inner}</div>`;}
+function pdfFoot(label){return `<div class="pdf-foot"><span>HerStyleVault</span><span>${pdfEsc(label)}</span></div>`;}
+function pdfSwatches(arr){return `<div class="pdf-swatches">${arr.map(c=>`<div class="pdf-sw"><div class="pdf-sw-box" style="background:${c.h};"></div><div class="pdf-sw-label">${pdfEsc(c.n)}<br><span class="pdf-sw-hex">${c.h.toUpperCase()}</span></div></div>`).join('')}</div>`;}
+function pdfList(arr){return `<ul class="pdf-list">${arr.map(i=>`<li>${pdfEsc(i)}</li>`).join('')}</ul>`;}
+
+function buildPdfPages(){
+  const name=(document.getElementById('cn-color').value||document.getElementById('cn-body').value||'Client').trim()||'Client';
+  const{key:seasonKey,axes}=getSeason(CA);const d=colorData[seasonKey];const shape=BA.shape;const bd=bodyData[shape];
+  const pd=premiumColorData[getPremiumBucket(axes)];
+  const family=SEASON_FAMILY[seasonKey];const arch=(archetypesBySeasonFamily[family]&&archetypesBySeasonFamily[family][shape])||'That Girl';
+  const colorNarrative=buildColorNarrative(CA,axes,d);const bodyNarrative=buildBodyNarrative(BA,bd);
+  const dateStr=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const pages=[];
+
+  pages.push(pdfPage('pdf-cover',`
+    <div class="pdf-logo">HerStyleVault</div>
+    <div class="pdf-pkg-pill">${pdfEsc(PKG_NAME)} · ${pdfEsc(PKG_TAG)} Style Guide</div>
+    <div class="pdf-client-name">${pdfEsc(name)}</div>
+    <div class="pdf-date">Prepared ${dateStr} · by Adebisi</div>
+  `));
+
+  pages.push(pdfPage('',`
+    <p class="pdf-section-label">✦ Style Archetype</p>
+    <h1 class="pdf-h1"><em>${pdfEsc(arch)}</em></h1>
+    <div class="pdf-box"><p class="pdf-section-label" style="margin-top:0;">Color Type Identified</p><h2 class="pdf-h1" style="font-size:1.25rem;">${pdfEsc(d.label||d.undertone)}</h2>${pdfEsc(d.desc)}</div>
+    <p class="pdf-section-label">✦ Why This Is You</p><div class="pdf-box">${pdfEsc(colorNarrative)}</div>
+    ${pdfFoot(PKG_NAME+' — Color Analysis')}
+  `));
+
+  let paletteInner=`<p class="pdf-section-label" style="margin-top:0;">Power Neutrals</p>${pdfSwatches(d.neutrals)}<p class="pdf-section-label">Signature Colors</p>${pdfSwatches(d.signature)}`;
+  if(d.accents)paletteInner+=`<p class="pdf-section-label">Accent Colors</p>${pdfSwatches(d.accents)}`;
+  paletteInner+=`<p class="pdf-section-label">Metal Tone</p><div class="pdf-box">${pdfEsc(d.metal)}</div>`;
+  pages.push(pdfPage('',`<h1 class="pdf-h1">Their <em>Palette</em></h1>${paletteInner}${pdfFoot(PKG_NAME+' — Color Palette')}`));
+
+  let patInner='';
+  if(d.accessory)patInner+=`<p class="pdf-section-label" style="margin-top:0;">Accessory Color Guide</p><div class="pdf-box">${pdfEsc(d.accessory)}</div>`;
+  if(d.patterns)patInner+=`<p class="pdf-section-label">Pattern & Print Guidance</p>${pdfList(d.patterns)}`;
+  patInner+=`<p class="pdf-section-label">Colors to Avoid</p><div class="pdf-box">${pdfEsc(d.avoid)}</div>`;
+  pages.push(pdfPage('',`<h1 class="pdf-h1">Pattern & <em>Avoid</em></h1>${patInner}${pdfFoot(PKG_NAME+' — Color Guidance')}`));
+
+  if(pd.seasonal){
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Seasonal & <em>Occasion</em> Color</h1>
+      <p class="pdf-section-label" style="margin-top:0;">Seasonal Color Guide</p>${pdfList(pd.seasonal)}
+      <p class="pdf-section-label">Colors by Occasion</p>${pdfList(pd.occasion)}
+      ${pdfFoot(PKG_NAME+' — Exclusive Color Intelligence')}`));
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Makeup & <em>Hair</em></h1>
+      <p class="pdf-section-label" style="margin-top:0;">Makeup Color Direction</p>${pdfList(pd.makeup)}
+      <p class="pdf-section-label">Hair Color Recommendations</p>${pdfList(pd.hair)}
+      <p class="pdf-section-label">Foundation Undertone Guide</p><div class="pdf-box">${pdfEsc(pd.foundation)}</div>
+      ${pdfFoot(PKG_NAME+' — Exclusive Beauty Direction')}`));
+  }
+
+  pages.push(pdfPage('',`<p class="pdf-section-label">✦ Body Shape</p><h1 class="pdf-h1">${pdfEsc(bd.shape)}</h1>
+    <div class="pdf-box">${pdfEsc(bd.desc)}</div>
+    <p class="pdf-section-label">✦ Why This Is You</p><div class="pdf-box">${pdfEsc(bodyNarrative)}</div>
+    <p class="pdf-section-label">Styling Goal</p><div class="pdf-box" style="font-style:italic;">${pdfEsc(bd.goal)}</div>
+    ${pdfFoot(PKG_NAME+' — Body Analysis')}`));
+
+  const topsArr=bd.tops||bd.necks||[];
+  const topsLabel=bd.tops?'Tops & Necklines':'Best Necklines';
+  if(!bd.acc){
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Silhouette <em>Guide</em></h1>
+      <p class="pdf-section-label" style="margin-top:0;">Best Silhouettes</p>${pdfList(bd.sils)}
+      <p class="pdf-section-label">${pdfEsc(topsLabel)}</p>${pdfList(topsArr)}
+      <p class="pdf-section-label">Best Bottoms</p>${pdfList(bd.bots)}
+      ${pdfFoot(PKG_NAME+' — Silhouette Guide')}`));
+  }else{
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Silhouette <em>Guide</em></h1>
+      <p class="pdf-section-label" style="margin-top:0;">Complete Silhouette Guide</p>${pdfList(bd.sils)}
+      <p class="pdf-section-label">${pdfEsc(topsLabel)}</p>${pdfList(topsArr)}
+      ${pdfFoot(PKG_NAME+' — Silhouette Guide')}`));
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Bottoms & <em>Accessories</em></h1>
+      <p class="pdf-section-label" style="margin-top:0;">Bottoms & Dresses</p>${pdfList(bd.bots)}
+      <p class="pdf-section-label">Accessory Styling Guide</p>${pdfList(bd.acc)}
+      ${pdfFoot(PKG_NAME+' — Styling Guide')}`));
+  }
+
+  if(bd.occasion){
+    pages.push(pdfPage('',`<h1 class="pdf-h1">Occasion & <em>Shopping</em></h1>
+      <p class="pdf-section-label" style="margin-top:0;">Occasion-Specific Styling</p>${pdfList(bd.occasion)}
+      <p class="pdf-section-label">Shopping Trip Strategy</p><div class="pdf-box">${pdfEsc(bd.shopTip)}</div>
+      <p class="pdf-section-label">Search These Terms</p><div class="pdf-box">${pdfEsc(bd.shopKeywords)}</div>
+      <p class="pdf-section-label">Avoid These Terms</p><div class="pdf-box">${pdfEsc(bd.avoidKeywords)}</div>
+      ${pdfFoot(PKG_NAME+' — Shopping Intelligence')}`));
+  }
+
+  pages.push(pdfPage('',`<h1 class="pdf-h1">Fabric & <em>Avoid List</em></h1>
+    <p class="pdf-section-label" style="margin-top:0;">Best Fabrics</p><div class="pdf-box">${pdfEsc(bd.fabGood)}</div>
+    <p class="pdf-section-label">Fabrics to Avoid</p><div class="pdf-box">${pdfEsc(bd.fabAvoid)}</div>
+    <p class="pdf-section-label">Things to Minimize</p>${pdfList(bd.avd)}
+    ${pdfFoot(PKG_NAME+' — Fabric Guide')}`));
+
+  outfits.forEach((o,i)=>{
+    if(!o||!o.img)return;
+    pages.push(pdfPage('pdf-outfit',`<h1 class="pdf-h1" style="text-align:center;">Outfit Build <em>${i+1}</em></h1>
+      <div style="display:flex;align-items:center;justify-content:center;height:760px;">
+        <img src="${o.img}" class="pdf-outfit-photo"/>
+      </div>
+      <div class="pdf-outfit-caption">${pdfEsc(o.caption||('Outfit '+(i+1)))}</div>
+      ${pdfFoot(PKG_NAME+' — Outfit Builds')}`));
+  });
+
+  pages.push(pdfPage('pdf-closing',`
+    <div class="pdf-logo">HerStyleVault</div>
+    <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;color:var(--deep-rose);max-width:560px;margin:1.5rem 0;line-height:1.6;">"Thank you for trusting me with your style journey. This guide is yours to keep and revisit — every piece was chosen with you in mind."</p>
+    <p style="font-size:0.9rem;color:var(--text-mid);">With love,<br><strong>Adebisi</strong><br>HerStyleVault ✦</p>
+  `));
+
+  return pages;
+}
+
+async function exportStyleGuidePDF(){
+  if(!colorGenerated||!bodyGenerated){updateExportState();return;}
+  const btn=document.getElementById('exportPdfBtn');
+  const origLabel=btn.textContent;
+  btn.disabled=true;btn.textContent='Building your Style Guide PDF…';
+  const root=document.getElementById('pdf-root');
+  try{
+    const pagesHtml=buildPdfPages();
+    root.innerHTML=pagesHtml.join('');
+    await new Promise(r=>setTimeout(r,60));
+    const pageEls=root.querySelectorAll('.pdf-page');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'px',format:[816,1056],compress:true});
+    for(let i=0;i<pageEls.length;i++){
+      const canvas=await html2canvas(pageEls[i],{scale:2,backgroundColor:'#ffffff',useCORS:true});
+      const img=canvas.toDataURL('image/jpeg',0.92);
+      if(i>0)pdf.addPage([816,1056],'portrait');
+      pdf.addImage(img,'JPEG',0,0,816,1056);
+    }
+    const rawName=(document.getElementById('cn-color').value||document.getElementById('cn-body').value||'Client').trim()||'Client';
+    const safeName=rawName.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim()||'Client';
+    pdf.save(`${safeName} - ${PKG_NAME} - Style Guide.pdf`);
+  }catch(err){
+    console.error(err);
+    alert('Something went wrong building the PDF. Please try again. ✦');
+  }finally{
+    root.innerHTML='';
+    btn.disabled=false;btn.textContent=origLabel;
+    updateExportState();
+  }
+}
+
+renderOutfitSlots();
+updateExportState();
+</script>
+</body>
+</html>
