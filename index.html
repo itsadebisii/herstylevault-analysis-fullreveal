@@ -624,19 +624,9 @@ function buildPdfPages(){
     <p class="pdf-section-label">Styling Goal</p><div class="pdf-box" style="font-style:italic;">${pdfEsc(bd.goal)}</div>
     ${pdfFoot(PKG_NAME+' — Body Analysis')}`));
 
-  const topsArr=bd.tops||bd.necks||[];
-  const topsLabel=bd.tops?'Tops & Necklines':'Best Necklines';
-  if(!bd.acc){
-    pages.push(pdfPage('',`<h1 class="pdf-h1">Silhouette <em>Guide</em></h1>
-      <p class="pdf-section-label" style="margin-top:0;">Best Silhouettes</p>${pdfList(bd.sils)}
-      <p class="pdf-section-label">${pdfEsc(topsLabel)}</p>${pdfList(topsArr)}
-      <p class="pdf-section-label">Best Bottoms</p>${pdfList(bd.bots)}
-      ${pdfFoot(PKG_NAME+' — Silhouette Guide')}`));
-  }else{
-    pages.push(pdfPage('',`<h1 class="pdf-h1">Accessory <em>Guide</em></h1>
-      <p class="pdf-section-label" style="margin-top:0;">Accessory Styling Guide</p>${pdfList(bd.acc)}
-      ${pdfFoot(PKG_NAME+' — Styling Guide')}`));
-  }
+  pages.push(pdfPage('',`<h1 class="pdf-h1">Accessory <em>Guide</em></h1>
+    <p class="pdf-section-label" style="margin-top:0;">Accessory Styling Guide</p>${pdfList(bd.acc)}
+    ${pdfFoot(PKG_NAME+' — Styling Guide')}`));
 
   if(bd.occasion){
     pages.push(pdfPage('',`<h1 class="pdf-h1">Occasion & <em>Shopping</em></h1>
