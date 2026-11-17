@@ -1044,7 +1044,13 @@ function updateExportState(){
 function pdfEsc(s){return(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pdfPage(cls,inner){return `<div class="pdf-page ${cls||''}">${inner}</div>`;}
 function pinUrl(q){return 'https://www.pinterest.com/search/pins/?q='+encodeURIComponent(q);}
-function pdfPins(items){return `<div class="pdf-pins">${items.map(x=>`<span class="pdf-pin" data-href="${pdfEsc(pinUrl(x[1]))}">&#128204; Pin-spiration: ${pdfEsc(x[0])} &rarr;</span>`).join('')}</div>`;}
+// Pinterest boards you have finished go here, one URL per section, e.g.
+//   'brightSpring:makeup':'https://www.pinterest.com/yourname/bright-spring/makeup/'
+// Sections per season: outfits, makeup, hair. Sections per shape: outfits, occasion.
+// A pill uses its board when one is set and otherwise falls back to the search link, so a client never lands on a dead page.
+const PIN_BOARDS={};
+function pinTarget(key,query){const u=PIN_BOARDS[key];return(typeof u==='string'&&/^https:\/\/(www\.)?pinterest\.com\/[^\s]+$|^https:\/\/pin\.it\/[^\s]+$/.test(u))?u:pinUrl(query);}
+function pdfPins(items){return `<div class="pdf-pins">${items.map(x=>`<span class="pdf-pin" data-href="${pdfEsc(pinTarget(x[2],x[1]))}">&#128204; Pin-spiration: ${pdfEsc(x[0])} &rarr;</span>`).join('')}</div>`;}
 function pdfFoot(label){return `<div class="pdf-foot"><span>HerStyleVault</span><span>${pdfEsc(label)}</span></div>`;}
 function pdfSwatches(arr,seasonKey){return `<div class="pdf-swatches">${arr.map(c=>`<div class="pdf-sw"><img class="pdf-sw-box" src="${(SWATCH_SHAPES[seasonKey]&&SWATCH_SHAPES[seasonKey][c.n])||''}"/><div class="pdf-sw-label">${pdfEsc(c.n)}</div></div>`).join('')}</div>`;}
 function pdfList(arr){return `<ul class="pdf-list">${arr.map(i=>`<li>${pdfEsc(i)}</li>`).join('')}</ul>`;}
@@ -1075,24 +1081,24 @@ function buildPdfPages(){
 
   let paletteInner=`<p class="pdf-section-label" style="margin-top:0;">Power Neutrals</p>${pdfSwatches(d.neutrals,seasonKey)}<p class="pdf-section-label">Signature Colors</p>${pdfSwatches(d.signature,seasonKey)}`;
   if(d.accents)paletteInner+=`<p class="pdf-section-label">Accent Colors</p>${pdfSwatches(d.accents,seasonKey)}`;
-  paletteInner+=pdfPins([['outfits in your colors',SN+' color palette outfits']]);
-  paletteInner+=`<p class="pdf-section-label">Metal Tone</p><div class="pdf-box">${pdfEsc(d.metal)}</div>`+pdfPins([['jewelry',SN+' jewelry']]);
+  paletteInner+=pdfPins([['outfits in your colors',SN+' color palette outfits',seasonKey+':outfits']]);
+  paletteInner+=`<p class="pdf-section-label">Metal Tone</p><div class="pdf-box">${pdfEsc(d.metal)}</div>`+pdfPins([['jewelry',SN+' jewelry',seasonKey+':outfits']]);
   pages.push(pdfPage('',`<h1 class="pdf-h1">Their <em>Palette</em></h1>${paletteInner}${pdfFoot(PKG_NAME+' — Color Palette')}`));
 
   let patInner='';
-  if(d.accessory)patInner+=`<p class="pdf-section-label" style="margin-top:0;">Accessory Color Guide</p><div class="pdf-box">${pdfEsc(d.accessory)}</div>`+pdfPins([['accessories',SN+' accessories']]);
-  if(d.patterns)patInner+=`<p class="pdf-section-label">Pattern & Print Guidance</p>${pdfList(d.patterns)}`+pdfPins([['prints & patterns',SN+' prints and patterns outfits']]);
+  if(d.accessory)patInner+=`<p class="pdf-section-label" style="margin-top:0;">Accessory Color Guide</p><div class="pdf-box">${pdfEsc(d.accessory)}</div>`+pdfPins([['accessories',SN+' accessories',seasonKey+':outfits']]);
+  if(d.patterns)patInner+=`<p class="pdf-section-label">Pattern & Print Guidance</p>${pdfList(d.patterns)}`+pdfPins([['prints & patterns',SN+' prints and patterns outfits',seasonKey+':outfits']]);
   patInner+=`<p class="pdf-section-label">Colors to Avoid</p><div class="pdf-box">${pdfEsc(d.avoid)}</div>`;
   pages.push(pdfPage('',`<h1 class="pdf-h1">Pattern & <em>Avoid</em></h1>${patInner}${pdfFoot(PKG_NAME+' — Color Guidance')}`));
 
   if(pd.seasonal){
     pages.push(pdfPage('',`<h1 class="pdf-h1">Seasonal & <em>Occasion</em> Color</h1>
       <p class="pdf-section-label" style="margin-top:0;">Seasonal Color Guide</p>${pdfList(pd.seasonal)}
-      <p class="pdf-section-label">Colors by Occasion</p>${pdfList(pd.occasion)}${pdfPins([['outfit ideas',SN+' outfit ideas']])}
+      <p class="pdf-section-label">Colors by Occasion</p>${pdfList(pd.occasion)}${pdfPins([['outfit ideas',SN+' outfit ideas',seasonKey+':outfits']])}
       ${pdfFoot(PKG_NAME+' — Exclusive Color Intelligence')}`));
     pages.push(pdfPage('',`<h1 class="pdf-h1">Makeup & <em>Hair</em></h1>
-      <p class="pdf-section-label" style="margin-top:0;">Makeup Color Direction</p>${pdfList(pd.makeup)}${pdfPins([['lip colors',SN+' lip colors'],['blush',SN+' blush'],['eyeshadow',SN+' eyeshadow']])}
-      <p class="pdf-section-label">Hair Color Recommendations</p>${pdfList(pd.hair)}${pdfPins([['hair color',SN+' hair color']])}
+      <p class="pdf-section-label" style="margin-top:0;">Makeup Color Direction</p>${pdfList(pd.makeup)}${pdfPins([['lip colors',SN+' lip colors',seasonKey+':makeup'],['blush',SN+' blush',seasonKey+':makeup'],['eyeshadow',SN+' eyeshadow',seasonKey+':makeup']])}
+      <p class="pdf-section-label">Hair Color Recommendations</p>${pdfList(pd.hair)}${pdfPins([['hair color',SN+' hair color',seasonKey+':hair']])}
       <p class="pdf-section-label">Foundation Undertone Guide</p><div class="pdf-box">${pdfEsc(pd.foundation)}</div>
       ${pdfFoot(PKG_NAME+' — Exclusive Beauty Direction')}`));
   }
@@ -1101,14 +1107,14 @@ function buildPdfPages(){
     <div class="pdf-box">${pdfEsc(bid.desc)}</div>
     <p class="pdf-section-label">Pieces That Suit Your Shape</p><div class="pdf-box">Tops: ${pdfEsc(bps.tops)}<br>Necklines: ${pdfEsc(bps.necklines)}<br>Bottoms: ${pdfEsc(bps.bottoms)}<br>Dresses: ${pdfEsc(bps.dresses)}<br>Outerwear: ${pdfEsc(bps.outerwear)}</div>
     <p class="pdf-section-label">✦ Why This Is You</p><div class="pdf-box">${pdfEsc(bodyNarrative)}</div>
-    <p class="pdf-section-label">Styling Goal</p><div class="pdf-box" style="font-style:italic;">${pdfEsc(bd.goal)}</div>${pdfPins([['outfits for your shape',SH+' shape flattering outfits']])}
+    <p class="pdf-section-label">Styling Goal</p><div class="pdf-box" style="font-style:italic;">${pdfEsc(bd.goal)}</div>${pdfPins([['outfits for your shape',SH+' shape flattering outfits',shape+':outfits']])}
     ${pdfFoot(PKG_NAME+' — Body Analysis')}`));
 
   if(bd.occasion){
     pages.push(pdfPage('',`<h1 class="pdf-h1">Occasion & <em>Shopping</em></h1>
       <p class="pdf-section-label" style="margin-top:0;">Occasion-Specific Styling</p>${pdfList(bd.occasion)}
       <p class="pdf-section-label">Shopping Trip Strategy</p><div class="pdf-box">${pdfEsc(bd.shopTip)}</div>
-      <p class="pdf-section-label">Search These Terms</p><div class="pdf-box">${pdfEsc(bd.shopKeywords)}</div>${pdfPins([['occasion outfits',SH+' shape occasion outfits']])}
+      <p class="pdf-section-label">Search These Terms</p><div class="pdf-box">${pdfEsc(bd.shopKeywords)}</div>${pdfPins([['occasion outfits',SH+' shape occasion outfits',shape+':occasion']])}
       <p class="pdf-section-label">Avoid These Terms</p><div class="pdf-box">${pdfEsc(bd.avoidKeywords)}</div>
       ${pdfFoot(PKG_NAME+' — Shopping Intelligence')}`));
   }
