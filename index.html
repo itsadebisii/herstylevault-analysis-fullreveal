@@ -1507,8 +1507,8 @@ function buildBodyTexts(d) {
 // ---------- Slide 4: Silhouette Guide ----------
 function itemRuns(str) {
   const [before, after] = dashSplit(str);
-  if (!after) return [titleCase(before), '']; // no " — " in source: title-only, no desc line
-  return [titleCase(before), capFirst(after)];
+  if (!after) return [capFirst(before), '']; // no " — " in source: title-only, no desc line
+  return [capFirst(before), capFirst(after)];
 }
 function buildSilhouetteTexts(d, pinterestUrl) {
   const sils = d.sils.map(itemRuns);
